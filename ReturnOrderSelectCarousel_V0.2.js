@@ -21,8 +21,6 @@ export const OrdersCarouselExtension = {
       console.log("Parsed Payload:", payloadObj);
   
       // Example data structure for your orders
-      // You can replace this with payloadObj.orders if you want dynamic data from the payload
-      // NOTE: We added an `imageUrl` field to each item so we can display it in the carousel.
       const orders = payloadObj.orders || [
         {
           orderNumber: "#1003",
@@ -34,7 +32,7 @@ export const OrdersCarouselExtension = {
               name: "Pre PRO 2.0",
               quantity: 2,
               price: 60,
-              imageUrl: "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000" // Example image
+              imageUrl: "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000"
             },
           ],
         },
@@ -92,7 +90,6 @@ export const OrdersCarouselExtension = {
             },
           ],
         },
-        // Add more orders if needed...
       ];
   
       // -----------------------------
@@ -111,6 +108,8 @@ export const OrdersCarouselExtension = {
           display: flex;
           transition: transform 0.3s ease-in-out;
         }
+  
+        /* Arrows outside the container */
         .carousel-arrow {
           position: absolute;
           top: 50%;
@@ -131,15 +130,15 @@ export const OrdersCarouselExtension = {
           background: #eee;
         }
         .arrow-left {
-          left: 0;
+          left: -50px; /* move arrow to the left of container */
         }
         .arrow-right {
-          right: 0;
+          right: -50px; /* move arrow to the right of container */
         }
   
         /* Card styling */
         .carousel-card {
-          flex: 0 0 50%; /* Now 2 cards per full carousel width */
+          flex: 0 0 50%; /* 2 cards per full carousel width */
           box-sizing: border-box;
           padding: 10px;
         }
@@ -152,7 +151,9 @@ export const OrdersCarouselExtension = {
         }
         .order-header {
           font-weight: bold;
-          margin-bottom: 10px;
+          margin-bottom: 8px;
+          padding-bottom: 8px; /* spacing for bottom line */
+          border-bottom: 1px solid #ccc; /* line under order number */
         }
         .order-line {
           font-size: 14px;
@@ -169,11 +170,12 @@ export const OrdersCarouselExtension = {
           display: flex;
           align-items: center;
           margin-bottom: 5px;
-          padding: 5px;
+          padding: 10px; /* more height & spacing */
           border-radius: 4px;
           transition: background 0.3s;
           cursor: pointer;
           justify-content: space-between;
+          min-height: 60px; /* ensure a taller row */
         }
         .item-row:hover {
           background: #f0f0f0; /* Gray hover effect */
@@ -190,7 +192,7 @@ export const OrdersCarouselExtension = {
           border-radius: 4px;
         }
         .item-name {
-          font-size: 12px; /* smaller text */
+          font-size: 12px; /* smaller text if needed */
         }
         .item-price {
           font-size: 14px;
@@ -298,8 +300,8 @@ export const OrdersCarouselExtension = {
           const orderNumber = row.getAttribute("data-order");
           console.log(`Selected item: ${itemName} from order ${orderNumber}`);
   
-          // If you want to send a complete payload via Voiceflow or similar:
           /*
+          // If you want to send a complete payload via Voiceflow or similar:
           window.voiceflow.chat.interact({
             type: 'complete',
             payload: {
