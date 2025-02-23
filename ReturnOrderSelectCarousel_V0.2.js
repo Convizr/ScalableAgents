@@ -5,23 +5,8 @@ export const OrdersCarouselExtension = {
       trace.type === "Custom_OrdersCarousel" ||
       (trace.payload && trace.payload.name === "Custom_OrdersCarousel"),
     render: ({ trace, element }) => {
-      console.log("Raw Payload:", trace.payload);
-  
-      let payloadObj;
-      if (typeof trace.payload === "string") {
-        try {
-          payloadObj = JSON.parse(trace.payload);
-        } catch (e) {
-          console.error("Error parsing trace.payload:", e, "Raw payload:", trace.payload);
-          return;
-        }
-      } else {
-        payloadObj = trace.payload || {};
-      }
-      console.log("Parsed Payload:", payloadObj);
-  
-      // Example data structure for your orders
-      const orders = payloadObj.orders || [
+      // Example data...
+      const orders = [
         {
           orderNumber: "#1003",
           orderedDate: "10-01-2025",
@@ -59,66 +44,32 @@ export const OrdersCarouselExtension = {
             },
           ],
         },
-        {
-          orderNumber: "#1005",
-          orderedDate: "10-02-2025",
-          maxReturnDate: "10-03-2025",
-          returnDate: "11-03-2025",
-          items: [
-            {
-              name: "Pre PRO 2.0",
-              quantity: 2,
-              price: 60,
-              imageUrl:
-                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
-            },
-            {
-              name: "Pre PRO 2.0",
-              quantity: 1,
-              price: 60,
-              imageUrl:
-                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
-            },
-          ],
-        },
-        {
-          orderNumber: "#1006",
-          orderedDate: "11-02-2025",
-          maxReturnDate: "11-03-2025",
-          returnDate: "12-03-2025",
-          items: [
-            {
-              name: "Pre PRO 2.0",
-              quantity: 3,
-              price: 90,
-              imageUrl:
-                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
-            },
-          ],
-        },
+        // Add more orders as needed...
       ];
   
-      // -----------------------------
-      // STYLES
-      // -----------------------------
       const styles = `
-        .carousel-container {
+        /* A parent wrapper to hold the container and the arrows */
+        .carousel-wrapper {
           position: relative;
           width: 90%;
           max-width: 1200px;
           margin: 0 auto;
+        }
+  
+        /* The container that actually holds the track and cards */
+        .carousel-container {
           overflow: hidden;
           font-family: Arial, sans-serif;
+          /* We want the container to fill the wrapper's width */
+          width: 100%;
         }
-        /* 
-          Force all cards to align at the bottom by stretching them 
-          to match the tallest card. 
-        */
+  
         .carousel-track {
           display: flex;
-          align-items: stretch; /* ensures same height columns */
+          align-items: stretch; 
           transition: transform 0.3s ease-in-out;
         }
+  
         .carousel-arrow {
           position: absolute;
           top: 50%;
@@ -139,11 +90,12 @@ export const OrdersCarouselExtension = {
         .carousel-arrow:hover {
           background: #eee;
         }
+        /* Place them to the far left/right of the .carousel-wrapper */
         .arrow-left {
-          left: 10px; /* place arrow just inside container */
+          left: -20px; 
         }
         .arrow-right {
-          right: 10px; /* place arrow just inside container */
+          right: -20px;
         }
   
         /* Each "card" is half the container width, so 2 cards show at once */
@@ -152,7 +104,7 @@ export const OrdersCarouselExtension = {
           box-sizing: border-box;
           padding: 10px;
           display: flex;
-          flex-direction: column; /* so the child .order-card can stretch */
+          flex-direction: column;
         }
         .order-card {
           background: #fafafa;
@@ -160,15 +112,15 @@ export const OrdersCarouselExtension = {
           border-radius: 8px;
           padding: 15px;
           transition: background 0.3s;
-          flex: 1; /* stretch to fill available vertical space */
+          flex: 1; 
           display: flex;
           flex-direction: column;
         }
         .order-header {
           font-weight: bold;
           margin-bottom: 8px;
-          padding-bottom: 8px; /* spacing for bottom line */
-          border-bottom: 1px solid #ccc; /* line under order number */
+          padding-bottom: 8px;
+          border-bottom: 1px solid #ccc;
         }
         .order-line {
           font-size: 14px;
@@ -178,15 +130,7 @@ export const OrdersCarouselExtension = {
           margin-top: 10px;
           border-top: 1px solid #ddd;
           padding-top: 10px;
-          /* Push the items to the bottom if needed, or remove if undesired:
-          flex: 1; 
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-start; 
-          */
         }
-  
-        /* Item row with image */
         .item-row {
           display: flex;
           align-items: center;
@@ -196,10 +140,10 @@ export const OrdersCarouselExtension = {
           transition: background 0.3s;
           cursor: pointer;
           justify-content: space-between;
-          min-height: 60px; /* ensure a taller row */
+          min-height: 60px; 
         }
         .item-row:hover {
-          background: #f0f0f0; /* Gray hover effect */
+          background: #f0f0f0;
         }
         .item-left {
           display: flex;
@@ -219,69 +163,71 @@ export const OrdersCarouselExtension = {
           font-size: 14px;
           font-weight: bold;
         }
-  
-        /* Selection glow effect */
         .item-row.selected {
           box-shadow: 0 0 0 2px orange;
         }
       `;
   
-      // -----------------------------
-      // HTML STRUCTURE
-      // -----------------------------
       element.innerHTML = `
         <style>${styles}</style>
-        <div class="carousel-container">
+        <!-- PARENT WRAPPER -->
+        <div class="carousel-wrapper">
+          
+          <!-- Arrows are placed here, outside .carousel-container -->
           <div class="carousel-arrow arrow-left" id="arrowLeft">&#10094;</div>
-          <div class="carousel-track" id="carouselTrack">
-            ${orders
-              .map((order) => {
-                return `
-                  <div class="carousel-card">
-                    <div class="order-card">
-                      <div class="order-header">Order: ${order.orderNumber}</div>
-                      <div class="order-line">Ordered date: ${order.orderedDate}</div>
-                      <div class="order-line">Max return date: ${order.maxReturnDate}</div>
-                      <div class="order-line">Return date: ${order.returnDate}</div>
-                      <div class="items-container">
-                        ${order.items
-                          .map((item) => {
-                            const imgSrc = item.imageUrl || "https://via.placeholder.com/40?text=NoImg";
-                            return `
-                              <div class="item-row" data-name="${item.name}" data-order="${order.orderNumber}">
-                                <div class="item-left">
-                                  <img class="item-image" src="${imgSrc}" alt="Product Image" />
-                                  <div class="item-name">${item.name} (x${item.quantity})</div>
+          
+          <!-- The actual carousel container -->
+          <div class="carousel-container">
+            <div class="carousel-track" id="carouselTrack">
+              ${orders
+                .map((order) => {
+                  return `
+                    <div class="carousel-card">
+                      <div class="order-card">
+                        <div class="order-header">Order: ${order.orderNumber}</div>
+                        <div class="order-line">Ordered date: ${order.orderedDate}</div>
+                        <div class="order-line">Max return date: ${order.maxReturnDate}</div>
+                        <div class="order-line">Return date: ${order.returnDate}</div>
+                        <div class="items-container">
+                          ${order.items
+                            .map((item) => {
+                              const imgSrc = item.imageUrl || "https://via.placeholder.com/40?text=NoImg";
+                              return `
+                                <div class="item-row" data-name="${item.name}" data-order="${order.orderNumber}">
+                                  <div class="item-left">
+                                    <img class="item-image" src="${imgSrc}" alt="Product Image" />
+                                    <div class="item-name">${item.name} (x${item.quantity})</div>
+                                  </div>
+                                  <div class="item-price">€${item.price}</div>
                                 </div>
-                                <div class="item-price">€${item.price}</div>
-                              </div>
-                            `;
-                          })
-                          .join("")}
+                              `;
+                            })
+                            .join("")}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                `;
-              })
-              .join("")}
+                  `;
+                })
+                .join("")}
+            </div>
           </div>
+  
+          <!-- Right arrow also outside .carousel-container -->
           <div class="carousel-arrow arrow-right" id="arrowRight">&#10095;</div>
         </div>
       `;
   
       // -----------------------------
-      // CAROUSEL FUNCTIONALITY
+      // Carousel Functionality
       // -----------------------------
       const track = element.querySelector("#carouselTrack");
       const arrowLeft = element.querySelector("#arrowLeft");
       const arrowRight = element.querySelector("#arrowRight");
       const cardCount = orders.length;
-      const cardsToShow = 2; // showing 2 cards at a time
-      let currentIndex = 0; // 0-based index for the "page" of the carousel
+      const cardsToShow = 2; // 2 cards at a time
+      let currentIndex = 0;
   
       function updateCarousel() {
-        // Each card is 1/2 of container's width => 2 cards visible at once
-        // Move the track by the # of cards * the width (in %).
         const translatePercentage = -(100 / cardsToShow) * currentIndex;
         track.style.transform = `translateX(${translatePercentage}%)`;
       }
@@ -294,8 +240,6 @@ export const OrdersCarouselExtension = {
       });
   
       arrowRight.addEventListener("click", () => {
-        // The max index is (cardCount - cardsToShow),
-        // so the last group of 2 is fully visible
         if (currentIndex < cardCount - cardsToShow) {
           currentIndex++;
           updateCarousel();
@@ -303,36 +247,22 @@ export const OrdersCarouselExtension = {
       });
   
       // -----------------------------
-      // ITEM SELECTION FUNCTIONALITY
+      // Item Selection
       // -----------------------------
       const itemRows = element.querySelectorAll(".item-row");
       let selectedItem = null;
   
       itemRows.forEach((row) => {
         row.addEventListener("click", () => {
-          // Remove 'selected' from any previously selected item
           if (selectedItem) {
             selectedItem.classList.remove("selected");
           }
-          // Add 'selected' to the newly clicked item
           row.classList.add("selected");
           selectedItem = row;
   
-          // Example logging or sending a payload
           const itemName = row.getAttribute("data-name");
           const orderNumber = row.getAttribute("data-order");
           console.log(`Selected item: ${itemName} from order ${orderNumber}`);
-  
-          /*
-          // If you want to send a complete payload via Voiceflow or similar:
-          window.voiceflow.chat.interact({
-            type: 'complete',
-            payload: {
-              orderNumber,
-              itemName
-            }
-          });
-          */
         });
       });
     },
