@@ -44,7 +44,49 @@ export const OrdersCarouselExtension = {
             },
           ],
         },
-        // Add more orders as needed...
+        {
+            orderNumber: "#1006",
+            orderedDate: "10-02-2025",
+            maxReturnDate: "10-03-2025",
+            returnDate: "11-03-2025",
+            items: [
+              {
+                name: "Granola",
+                quantity: 1,
+                price: 20,
+                imageUrl:
+                  "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
+              },
+              {
+                name: "Pre PRO 2.0",
+                quantity: 2,
+                price: 60,
+                imageUrl:
+                  "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
+              },
+            ],
+          },{
+            orderNumber: "#1007",
+            orderedDate: "10-02-2025",
+            maxReturnDate: "10-03-2025",
+            returnDate: "11-03-2025",
+            items: [
+              {
+                name: "Granola",
+                quantity: 1,
+                price: 20,
+                imageUrl:
+                  "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
+              },
+              {
+                name: "Pre PRO 2.0",
+                quantity: 2,
+                price: 60,
+                imageUrl:
+                  "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
+              },
+            ],
+          },
       ];
   
       const styles = `
