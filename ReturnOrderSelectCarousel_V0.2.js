@@ -32,7 +32,8 @@ export const OrdersCarouselExtension = {
               name: "Pre PRO 2.0",
               quantity: 2,
               price: 60,
-              imageUrl: "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000"
+              imageUrl:
+                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
             },
           ],
         },
@@ -46,13 +47,15 @@ export const OrdersCarouselExtension = {
               name: "Granola",
               quantity: 1,
               price: 20,
-              imageUrl: "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000"
+              imageUrl:
+                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
             },
             {
               name: "Pre PRO 2.0",
               quantity: 2,
               price: 60,
-              imageUrl: "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000"
+              imageUrl:
+                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
             },
           ],
         },
@@ -66,13 +69,15 @@ export const OrdersCarouselExtension = {
               name: "Pre PRO 2.0",
               quantity: 2,
               price: 60,
-              imageUrl: "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000"
+              imageUrl:
+                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
             },
             {
               name: "Pre PRO 2.0",
               quantity: 1,
               price: 60,
-              imageUrl: "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000"
+              imageUrl:
+                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
             },
           ],
         },
@@ -86,7 +91,8 @@ export const OrdersCarouselExtension = {
               name: "Pre PRO 2.0",
               quantity: 3,
               price: 90,
-              imageUrl: "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000"
+              imageUrl:
+                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
             },
           ],
         },
@@ -104,12 +110,15 @@ export const OrdersCarouselExtension = {
           overflow: hidden;
           font-family: Arial, sans-serif;
         }
+        /* 
+          Force all cards to align at the bottom by stretching them 
+          to match the tallest card. 
+        */
         .carousel-track {
           display: flex;
+          align-items: stretch; /* ensures same height columns */
           transition: transform 0.3s ease-in-out;
         }
-  
-        /* Arrows outside the container */
         .carousel-arrow {
           position: absolute;
           top: 50%;
@@ -125,22 +134,25 @@ export const OrdersCarouselExtension = {
           text-align: center;
           user-select: none;
           z-index: 2;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .carousel-arrow:hover {
           background: #eee;
         }
         .arrow-left {
-          left: -50px; /* move arrow to the left of container */
+          left: 10px; /* place arrow just inside container */
         }
         .arrow-right {
-          right: -50px; /* move arrow to the right of container */
+          right: 10px; /* place arrow just inside container */
         }
   
-        /* Card styling */
+        /* Each "card" is half the container width, so 2 cards show at once */
         .carousel-card {
-          flex: 0 0 50%; /* 2 cards per full carousel width */
+          flex: 0 0 50%;
           box-sizing: border-box;
           padding: 10px;
+          display: flex;
+          flex-direction: column; /* so the child .order-card can stretch */
         }
         .order-card {
           background: #fafafa;
@@ -148,6 +160,9 @@ export const OrdersCarouselExtension = {
           border-radius: 8px;
           padding: 15px;
           transition: background 0.3s;
+          flex: 1; /* stretch to fill available vertical space */
+          display: flex;
+          flex-direction: column;
         }
         .order-header {
           font-weight: bold;
@@ -163,6 +178,12 @@ export const OrdersCarouselExtension = {
           margin-top: 10px;
           border-top: 1px solid #ddd;
           padding-top: 10px;
+          /* Push the items to the bottom if needed, or remove if undesired:
+          flex: 1; 
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start; 
+          */
         }
   
         /* Item row with image */
@@ -170,7 +191,7 @@ export const OrdersCarouselExtension = {
           display: flex;
           align-items: center;
           margin-bottom: 5px;
-          padding: 10px; /* more height & spacing */
+          padding: 10px;
           border-radius: 4px;
           transition: background 0.3s;
           cursor: pointer;
@@ -192,7 +213,7 @@ export const OrdersCarouselExtension = {
           border-radius: 4px;
         }
         .item-name {
-          font-size: 12px; /* smaller text if needed */
+          font-size: 12px;
         }
         .item-price {
           font-size: 14px;
@@ -213,34 +234,36 @@ export const OrdersCarouselExtension = {
         <div class="carousel-container">
           <div class="carousel-arrow arrow-left" id="arrowLeft">&#10094;</div>
           <div class="carousel-track" id="carouselTrack">
-            ${orders.map((order) => {
-              return `
-                <div class="carousel-card">
-                  <div class="order-card">
-                    <div class="order-header">Order: ${order.orderNumber}</div>
-                    <div class="order-line">Ordered date: ${order.orderedDate}</div>
-                    <div class="order-line">Max return date: ${order.maxReturnDate}</div>
-                    <div class="order-line">Return date: ${order.returnDate}</div>
-                    <div class="items-container">
-                      ${order.items
-                        .map((item) => {
-                          const imgSrc = item.imageUrl || "https://via.placeholder.com/40?text=NoImg";
-                          return `
-                            <div class="item-row" data-name="${item.name}" data-order="${order.orderNumber}">
-                              <div class="item-left">
-                                <img class="item-image" src="${imgSrc}" alt="Product Image" />
-                                <div class="item-name">${item.name} (x${item.quantity})</div>
+            ${orders
+              .map((order) => {
+                return `
+                  <div class="carousel-card">
+                    <div class="order-card">
+                      <div class="order-header">Order: ${order.orderNumber}</div>
+                      <div class="order-line">Ordered date: ${order.orderedDate}</div>
+                      <div class="order-line">Max return date: ${order.maxReturnDate}</div>
+                      <div class="order-line">Return date: ${order.returnDate}</div>
+                      <div class="items-container">
+                        ${order.items
+                          .map((item) => {
+                            const imgSrc = item.imageUrl || "https://via.placeholder.com/40?text=NoImg";
+                            return `
+                              <div class="item-row" data-name="${item.name}" data-order="${order.orderNumber}">
+                                <div class="item-left">
+                                  <img class="item-image" src="${imgSrc}" alt="Product Image" />
+                                  <div class="item-name">${item.name} (x${item.quantity})</div>
+                                </div>
+                                <div class="item-price">€${item.price}</div>
                               </div>
-                              <div class="item-price">€${item.price}</div>
-                            </div>
-                          `;
-                        })
-                        .join("")}
+                            `;
+                          })
+                          .join("")}
+                      </div>
                     </div>
                   </div>
-                </div>
-              `;
-            }).join("")}
+                `;
+              })
+              .join("")}
           </div>
           <div class="carousel-arrow arrow-right" id="arrowRight">&#10095;</div>
         </div>
@@ -253,12 +276,12 @@ export const OrdersCarouselExtension = {
       const arrowLeft = element.querySelector("#arrowLeft");
       const arrowRight = element.querySelector("#arrowRight");
       const cardCount = orders.length;
-      const cardsToShow = 2; // Now showing 2 cards at a time
-      let currentIndex = 0; // Which "page" of the carousel we are on (0-based)
+      const cardsToShow = 2; // showing 2 cards at a time
+      let currentIndex = 0; // 0-based index for the "page" of the carousel
   
       function updateCarousel() {
-        // Each card is 1/2 of container's width (because flex: 0 0 50%).
-        // We move the track by the number of cards * the width (in %).
+        // Each card is 1/2 of container's width => 2 cards visible at once
+        // Move the track by the # of cards * the width (in %).
         const translatePercentage = -(100 / cardsToShow) * currentIndex;
         track.style.transform = `translateX(${translatePercentage}%)`;
       }
@@ -271,8 +294,8 @@ export const OrdersCarouselExtension = {
       });
   
       arrowRight.addEventListener("click", () => {
-        // The maximum index we can go to is (cardCount - cardsToShow)
-        // so that the last group of 2 is fully visible
+        // The max index is (cardCount - cardsToShow),
+        // so the last group of 2 is fully visible
         if (currentIndex < cardCount - cardsToShow) {
           currentIndex++;
           updateCarousel();
@@ -287,15 +310,15 @@ export const OrdersCarouselExtension = {
   
       itemRows.forEach((row) => {
         row.addEventListener("click", () => {
-          // Remove 'selected' class from previously selected item
+          // Remove 'selected' from any previously selected item
           if (selectedItem) {
             selectedItem.classList.remove("selected");
           }
-          // Add 'selected' class to the newly clicked item
+          // Add 'selected' to the newly clicked item
           row.classList.add("selected");
           selectedItem = row;
   
-          // Example: sending a payload or logging the selected item
+          // Example logging or sending a payload
           const itemName = row.getAttribute("data-name");
           const orderNumber = row.getAttribute("data-order");
           console.log(`Selected item: ${itemName} from order ${orderNumber}`);
