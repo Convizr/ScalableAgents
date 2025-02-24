@@ -4,8 +4,11 @@ export const OrdersCarouselExtension = {
     match: ({ trace }) =>
       trace.type === "Custom_OrdersCarousel" ||
       (trace.payload && trace.payload.name === "Custom_OrdersCarousel"),
+  
     render: ({ trace, element }) => {
-      // Example data (add data-quantity, data-price in the HTML so we can read them on click)
+      // ------------------------------------------
+      // 1) EXAMPLE DATA
+      // ------------------------------------------
       const orders = [
         {
           orderNumber: "#1003",
@@ -61,7 +64,11 @@ export const OrdersCarouselExtension = {
         },
       ];
   
+      // ------------------------------------------
+      // 2) STYLES
+      // ------------------------------------------
       const styles = `
+        /* Carousel wrapper + container */
         .carousel-wrapper {
           position: relative;
           width: 90%;
@@ -78,6 +85,8 @@ export const OrdersCarouselExtension = {
           align-items: stretch;
           transition: transform 0.3s ease-in-out;
         }
+  
+        /* Arrows */
         .carousel-arrow {
           position: absolute;
           top: 50%;
@@ -104,8 +113,10 @@ export const OrdersCarouselExtension = {
         .arrow-right {
           right: -35px;
         }
+  
+        /* Cards */
         .carousel-card {
-          flex: 0 0 50%;
+          flex: 0 0 50%; /* 2 cards per view */
           box-sizing: border-box;
           padding: 10px;
           display: flex;
@@ -121,6 +132,8 @@ export const OrdersCarouselExtension = {
           display: flex;
           flex-direction: column;
         }
+  
+        /* Order info */
         .order-header {
           font-weight: bold;
           margin-bottom: 8px;
@@ -136,6 +149,8 @@ export const OrdersCarouselExtension = {
           border-top: 1px solid #ddd;
           padding-top: 10px;
         }
+  
+        /* Item row */
         .item-row {
           display: flex;
           align-items: center;
@@ -172,7 +187,7 @@ export const OrdersCarouselExtension = {
           box-shadow: 0 0 0 2px orange;
         }
   
-        /* NEW: Form styling for the "return request" layout */
+        /* Return form layout */
         .return-form {
           display: flex;
           flex-direction: column;
@@ -219,7 +234,9 @@ export const OrdersCarouselExtension = {
         }
       `;
   
-      // Build the base HTML
+      // ------------------------------------------
+      // 3) BASE HTML
+      // ------------------------------------------
       element.innerHTML = `
         <style>${styles}</style>
         <div class="carousel-wrapper">
@@ -238,19 +255,20 @@ export const OrdersCarouselExtension = {
                         <div class="items-container">
                           ${order.items
                             .map((item) => {
-                              const imgSrc = item.imageUrl;
                               return `
-                                <div 
-                                  class="item-row" 
-                                  data-name="${item.name}" 
-                                  data-quantity="${item.quantity}" 
-                                  data-price="${item.price}" 
-                                  data-image="${imgSrc}" 
+                                <div
+                                  class="item-row"
+                                  data-name="${item.name}"
+                                  data-quantity="${item.quantity}"
+                                  data-price="${item.price}"
+                                  data-image="${item.imageUrl}"
                                   data-order="${order.orderNumber}"
                                 >
                                   <div class="item-left">
-                                    <img class="item-image" src="${imgSrc}" alt="Product Image" />
-                                    <div class="item-name">${item.name} (x${item.quantity})</div>
+                                    <img class="item-image" src="${item.imageUrl}" alt="Product Image" />
+                                    <div class="item-name">
+                                      ${item.name} (x${item.quantity})
+                                    </div>
                                   </div>
                                   <div class="item-price">€${item.price}</div>
                                 </div>
@@ -269,14 +287,14 @@ export const OrdersCarouselExtension = {
         </div>
       `;
   
-      // -----------------------------
-      // Carousel Functionality
-      // -----------------------------
+      // ------------------------------------------
+      // 4) CAROUSEL FUNCTIONALITY
+      // ------------------------------------------
       const track = element.querySelector("#carouselTrack");
       const arrowLeft = element.querySelector("#arrowLeft");
       const arrowRight = element.querySelector("#arrowRight");
       const cardCount = orders.length;
-      const cardsToShow = 2; // 2 cards at a time
+      const cardsToShow = 2;
       let currentIndex = 0;
   
       function updateCarousel() {
@@ -298,20 +316,22 @@ export const OrdersCarouselExtension = {
         }
       });
   
-      // -----------------------------
-      // Item Selection => Show Return Form
-      // -----------------------------
+      // ------------------------------------------
+      // 5) ITEM SELECTION => SHOW RETURN FORM
+      // ------------------------------------------
       const itemRows = element.querySelectorAll(".item-row");
       let selectedItem = null;
   
       itemRows.forEach((row) => {
         row.addEventListener("click", () => {
-          // Visual highlight
-          if (selectedItem) selectedItem.classList.remove("selected");
+          // Highlight the newly selected item
+          if (selectedItem) {
+            selectedItem.classList.remove("selected");
+          }
           row.classList.add("selected");
           selectedItem = row;
   
-          // Gather item data
+          // Extract item data
           const itemName = row.getAttribute("data-name");
           const itemQuantity = row.getAttribute("data-quantity");
           const itemPrice = row.getAttribute("data-price");
@@ -320,27 +340,28 @@ export const OrdersCarouselExtension = {
   
           console.log(`Selected item: ${itemName} from order ${orderNumber}`);
   
-          // Find the parent .carousel-card so we can replace its content
+          // Find the parent card to replace with the return form
           const parentCard = row.closest(".carousel-card");
           if (!parentCard) return;
   
-          // Build the new Return Form layout
+          // Build the Return Form
           const returnFormHTML = `
             <div class="order-card">
               <div class="order-header">Order: ${orderNumber}</div>
-              <!-- Return Form Layout -->
               <div class="return-form">
                 <img src="${itemImage}" alt="Product Image" />
                 <div class="product-title">${itemName}</div>
-                <div class="product-info">Quantity: ${itemQuantity} | Price: €${itemPrice}</div>
+                <div class="product-info">
+                  Quantity: ${itemQuantity} | Price: €${itemPrice}
+                </div>
   
                 <label for="returnQuantity">Quantity</label>
-                <input 
-                  type="number" 
-                  id="returnQuantity" 
-                  name="returnQuantity" 
-                  min="1" 
-                  max="${itemQuantity}" 
+                <input
+                  type="number"
+                  id="returnQuantity"
+                  name="returnQuantity"
+                  min="1"
+                  max="${itemQuantity}"
                   value="${itemQuantity}"
                 />
   
@@ -353,17 +374,21 @@ export const OrdersCarouselExtension = {
                 </select>
   
                 <label for="additionalNotes">Additional Notes</label>
-                <textarea id="additionalNotes" name="additionalNotes" rows="3"></textarea>
+                <textarea
+                  id="additionalNotes"
+                  name="additionalNotes"
+                  rows="3"
+                ></textarea>
   
                 <button id="createReturnBtn">Create Return Request</button>
               </div>
             </div>
           `;
   
-          // Replace the card’s content with the new form
+          // Replace the card’s content
           parentCard.innerHTML = returnFormHTML;
   
-          // Attach event listener to the "Create Return Request" button
+          // Attach listener to the "Create Return Request" button
           const createReturnBtn = parentCard.querySelector("#createReturnBtn");
           createReturnBtn.addEventListener("click", () => {
             const returnQty = parentCard.querySelector("#returnQuantity").value;
@@ -380,17 +405,19 @@ export const OrdersCarouselExtension = {
               notes,
             });
   
-            // In a real app, you might do:
-            // window.voiceflow.chat.interact({
-            //   type: 'complete',
-            //   payload: {
-            //     orderNumber,
-            //     itemName,
-            //     requestedQuantity: returnQty,
-            //     reason,
-            //     notes
-            //   }
-            // });
+            /*
+            // If using Voiceflow or your own backend:
+            window.voiceflow.chat.interact({
+              type: 'complete',
+              payload: {
+                orderNumber,
+                itemName,
+                requestedQuantity: returnQty,
+                reason,
+                notes
+              }
+            });
+            */
           });
         });
       });
