@@ -116,7 +116,7 @@ export const OrdersCarouselExtension = {
   
         /* Cards */
         .carousel-card {
-          flex: 0 0 50%; /* 2 cards per view */
+          flex: 0 0 50%;
           box-sizing: border-box;
           padding: 10px;
           display: flex;
@@ -139,6 +139,7 @@ export const OrdersCarouselExtension = {
           margin-bottom: 8px;
           padding-bottom: 8px;
           border-bottom: 1px solid #ccc;
+          text-align: center; /* (5) Center the order number */
         }
         .order-line {
           font-size: 14px;
@@ -187,50 +188,95 @@ export const OrdersCarouselExtension = {
           box-shadow: 0 0 0 2px orange;
         }
   
-        /* Return form layout */
+        /* --- RETURN FORM STYLES --- */
         .return-form {
           display: flex;
           flex-direction: column;
           gap: 10px;
         }
-        .return-form img {
-          max-width: 80px;
-          margin-bottom: 10px;
+  
+        /* (6) Layout: image on the left, product info on the right */
+        .top-section {
+          display: flex;
+          gap: 10px;
+          align-items: flex-start; /* or center, if you prefer */
         }
-        .return-form .product-title {
+        .product-info-right {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+        .product-title {
           font-weight: bold;
           font-size: 16px;
         }
-        .return-form .product-info {
+        .product-info {
           font-size: 14px;
           color: #555;
         }
-        .return-form label {
-          font-size: 14px;
-          margin-top: 10px;
+  
+        /* (7) Divider line between product info & quantity label */
+        .divider {
+          border: none;
+          border-top: 1px solid #ccc;
+          margin: 10px 0;
         }
-        .return-form input[type="number"] {
-          width: 60px;
-          padding: 4px;
+  
+        /* Quantity control: big number w/ up/down on sides */
+        .quantity-control {
+          display: flex;
+          align-items: center;
+          gap: 10px;
         }
-        .return-form select,
-        .return-form textarea {
-          width: 100%;
+        .qty-btn {
+          width: 30px;
+          height: 30px;
+          font-size: 18px;
+          background: none;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          color: #000;
+          cursor: pointer;
+          line-height: 28px;
+          text-align: center;
+        }
+        .qty-display {
+          font-size: 20px;
+          font-weight: bold;
+          width: 30px;
+          text-align: center;
+        }
+  
+        /* (2) White background + inner shadow for dropdown */
+        .reason-select {
+          background: #fff;
+          box-shadow: inset 0 0 4px rgba(0,0,0,0.1);
+          border: none;
+          border-radius: 4px;
+          padding: 6px;
+        }
+  
+        /* (3) Text area w/ inner shadow */
+        .notes-area {
+          box-shadow: inset 0 0 4px rgba(0,0,0,0.1);
+          border: none;
+          border-radius: 4px;
           padding: 6px;
           font-size: 14px;
         }
-        .return-form button {
-          margin-top: 10px;
-          padding: 8px 12px;
-          border: none;
-          background: #007BFF;
-          color: #fff;
-          font-size: 14px;
+  
+        /* (4) Outline button with black text */
+        .outline-btn {
+          background: none;
+          border: 1px solid #ccc;
+          color: #000;
+          padding: 10px;
           border-radius: 4px;
           cursor: pointer;
+          text-align: center;
         }
-        .return-form button:hover {
-          background: #0056b3;
+        .outline-btn:hover {
+          background: #f0f0f0;
         }
       `;
   
@@ -248,7 +294,7 @@ export const OrdersCarouselExtension = {
                   return `
                     <div class="carousel-card">
                       <div class="order-card">
-                        <div class="order-header">Order: ${order.orderNumber}</div>
+                        <div class="order-header">${order.orderNumber}</div>
                         <div class="order-line">Ordered date: ${order.orderedDate}</div>
                         <div class="order-line">Max return date: ${order.maxReturnDate}</div>
                         <div class="order-line">Return date: ${order.returnDate}</div>
@@ -333,7 +379,7 @@ export const OrdersCarouselExtension = {
   
           // Extract item data
           const itemName = row.getAttribute("data-name");
-          const itemQuantity = row.getAttribute("data-quantity");
+          const itemQuantity = parseInt(row.getAttribute("data-quantity"), 10) || 1;
           const itemPrice = row.getAttribute("data-price");
           const itemImage = row.getAttribute("data-image");
           const orderNumber = row.getAttribute("data-order");
@@ -344,29 +390,38 @@ export const OrdersCarouselExtension = {
           const parentCard = row.closest(".carousel-card");
           if (!parentCard) return;
   
-          // Build the Return Form
+          // Build the Return Form layout
           const returnFormHTML = `
             <div class="order-card">
-              <div class="order-header">Order: ${orderNumber}</div>
+              <div class="order-header">${orderNumber}</div>
+  
               <div class="return-form">
-                <img src="${itemImage}" alt="Product Image" />
-                <div class="product-title">${itemName}</div>
-                <div class="product-info">
-                  Quantity: ${itemQuantity} | Price: €${itemPrice}
+                <!-- (6) Put image on left, info on right -->
+                <div class="top-section">
+                  <img src="${itemImage}" alt="Product Image" />
+                  <div class="product-info-right">
+                    <div class="product-title">${itemName}</div>
+                    <div class="product-info">
+                      Quantity: ${itemQuantity} | Price: €${itemPrice}
+                    </div>
+                  </div>
                 </div>
   
-                <label for="returnQuantity">Quantity</label>
-                <input
-                  type="number"
-                  id="returnQuantity"
-                  name="returnQuantity"
-                  min="1"
-                  max="${itemQuantity}"
-                  value="${itemQuantity}"
-                />
+                <!-- (7) Divider line -->
+                <hr class="divider" />
+  
+                <label>Quantity</label>
+                <!-- A big number with up/down on each side -->
+                <div class="quantity-control">
+                  <button class="qty-btn" id="qtyUp">&#94;</button>
+                  <div class="qty-display" id="qtyDisplay">${itemQuantity}</div>
+                  <button class="qty-btn" id="qtyDown">&#8744;</button>
+                </div>
+  
+                <hr class="divider" />
   
                 <label for="returnReason">Return Reason</label>
-                <select id="returnReason" name="returnReason">
+                <select id="returnReason" name="returnReason" class="reason-select">
                   <option value="" disabled selected>Select a reason</option>
                   <option value="damaged">Damaged</option>
                   <option value="incorrect">Incorrect Item</option>
@@ -374,13 +429,10 @@ export const OrdersCarouselExtension = {
                 </select>
   
                 <label for="additionalNotes">Additional Notes</label>
-                <textarea
-                  id="additionalNotes"
-                  name="additionalNotes"
-                  rows="3"
-                ></textarea>
+                <textarea id="additionalNotes" name="additionalNotes" rows="3" class="notes-area"></textarea>
   
-                <button id="createReturnBtn">Create Return Request</button>
+                <!-- Outline button with black text -->
+                <button id="createReturnBtn" class="outline-btn">Create Return Request</button>
               </div>
             </div>
           `;
@@ -388,10 +440,27 @@ export const OrdersCarouselExtension = {
           // Replace the card’s content
           parentCard.innerHTML = returnFormHTML;
   
-          // Attach listener to the "Create Return Request" button
+          // Now attach event listeners inside the new form
+          const qtyDisplay = parentCard.querySelector("#qtyDisplay");
+          const qtyUp = parentCard.querySelector("#qtyUp");
+          const qtyDown = parentCard.querySelector("#qtyDown");
+          let currentQty = itemQuantity;
+  
+          // Increment/Decrement logic
+          qtyUp.addEventListener("click", () => {
+            currentQty++;
+            qtyDisplay.textContent = currentQty;
+          });
+          qtyDown.addEventListener("click", () => {
+            if (currentQty > 1) {
+              currentQty--;
+              qtyDisplay.textContent = currentQty;
+            }
+          });
+  
+          // "Create Return Request" button
           const createReturnBtn = parentCard.querySelector("#createReturnBtn");
           createReturnBtn.addEventListener("click", () => {
-            const returnQty = parentCard.querySelector("#returnQuantity").value;
             const reason = parentCard.querySelector("#returnReason").value;
             const notes = parentCard.querySelector("#additionalNotes").value;
   
@@ -400,7 +469,7 @@ export const OrdersCarouselExtension = {
               orderNumber,
               itemName,
               itemPrice,
-              requestedQuantity: returnQty,
+              requestedQuantity: currentQty,
               reason,
               notes,
             });
@@ -412,7 +481,7 @@ export const OrdersCarouselExtension = {
               payload: {
                 orderNumber,
                 itemName,
-                requestedQuantity: returnQty,
+                requestedQuantity: currentQty,
                 reason,
                 notes
               }
