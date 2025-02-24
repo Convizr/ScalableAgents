@@ -134,10 +134,10 @@ export const OrdersCarouselExtension = {
         }
         /* Place them to the far left/right of the .carousel-wrapper */
         .arrow-left {
-          left: -20px; 
+          left: -35px; 
         }
         .arrow-right {
-          right: -20px;
+          right: -35px;
         }
   
         /* Each "card" is half the container width, so 2 cards show at once */
