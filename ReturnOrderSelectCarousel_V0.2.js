@@ -443,7 +443,8 @@ export const OrdersCarouselExtension = {
                   <div class="product-info-right">
                     <div class="product-title">${itemName}</div>
                     <div class="product-info">
-                      Quantity: ${itemQuantity} | Price: €${itemPrice}
+                      Quantity: ${itemQuantity}
+                      <div>Price: €${itemPrice}</div>
                     </div>
                   </div>
                 </div>
@@ -452,9 +453,9 @@ export const OrdersCarouselExtension = {
   
                 <label>Quantity</label>
                 <div class="quantity-control">
-                  <button class="qty-btn" id="qtyDown">&#8744;</button>
+                  <button class="qty-btn" id="qtyDown">-</button>
                   <div class="qty-display" id="qtyDisplay">${itemQuantity}</div>
-                  <button class="qty-btn" id="qtyUp">&#94;</button>
+                  <button class="qty-btn" id="qtyUp">+</button>
                 </div>
   
                 <hr class="divider" />
