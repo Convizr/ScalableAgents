@@ -248,8 +248,9 @@ export const OrdersCarouselExtension = {
           border-radius: 4px;
           color: #000;
           cursor: pointer;
-          line-height: 28px;
-          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .qty-btn:disabled {
           opacity: 0.5;
@@ -453,8 +454,8 @@ export const OrdersCarouselExtension = {
   
                 <label>Quantity</label>
                 <div class="quantity-control">
-                  <button class="qty-btn" id="qtyDown">-</button>
-                  <div class="qty-display" id="qtyDisplay">${itemQuantity}</div>
+                  <button class="qty-btn" id="qtyDown" disabled>-</button>
+                  <div class="qty-display" id="qtyDisplay">1</div>
                   <button class="qty-btn" id="qtyUp">+</button>
                 </div>
   
@@ -483,17 +484,28 @@ export const OrdersCarouselExtension = {
           const qtyDisplay = parentCard.querySelector("#qtyDisplay");
           const qtyUp = parentCard.querySelector("#qtyUp");
           const qtyDown = parentCard.querySelector("#qtyDown");
-          let currentQty = itemQuantity;
+          let currentQty = 1;
   
           // Increment/Decrement logic
           qtyUp.addEventListener("click", () => {
-            currentQty++;
-            qtyDisplay.textContent = currentQty;
+            if (currentQty < itemQuantity) {
+              currentQty++;
+              qtyDisplay.textContent = currentQty;
+              qtyDown.disabled = false;
+            }
+            if (currentQty === itemQuantity) {
+              qtyUp.disabled = true;
+            }
           });
+          
           qtyDown.addEventListener("click", () => {
             if (currentQty > 1) {
               currentQty--;
               qtyDisplay.textContent = currentQty;
+              qtyUp.disabled = false;
+            }
+            if (currentQty === 1) {
+              qtyDown.disabled = true;
             }
           });
   
