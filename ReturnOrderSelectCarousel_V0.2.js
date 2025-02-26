@@ -1,5 +1,5 @@
 export const OrdersCarouselExtension = {
-    name: "OrdersCarousel",
+    name: "OrdersCarousel", 
     type: "response",
     match: ({ trace }) =>
       trace.type === "Custom_OrdersCarousel" ||
@@ -131,6 +131,8 @@ export const OrdersCarouselExtension = {
           flex: 1;
           display: flex;
           flex-direction: column;
+          width: 100%;
+          box-sizing: border-box;
         }
   
         /* Order info */
@@ -139,7 +141,7 @@ export const OrdersCarouselExtension = {
           margin-bottom: 8px;
           padding-bottom: 8px;
           border-bottom: 1px solid #ccc;
-          text-align: center; /* (5) Center the order number */
+          text-align: center;
         }
         .order-line {
           font-size: 14px;
@@ -193,18 +195,25 @@ export const OrdersCarouselExtension = {
           display: flex;
           flex-direction: column;
           gap: 10px;
+          width: 100%;
         }
   
-        /* (6) Layout: image on the left, product info on the right */
         .top-section {
           display: flex;
           gap: 10px;
-          align-items: flex-start; /* or center, if you prefer */
+          align-items: flex-start;
+        }
+        .top-section img {
+          width: 80px;
+          height: 80px;
+          object-fit: cover;
+          border-radius: 4px;
         }
         .product-info-right {
           display: flex;
           flex-direction: column;
           gap: 5px;
+          flex: 1;
         }
         .product-title {
           font-weight: bold;
@@ -215,14 +224,13 @@ export const OrdersCarouselExtension = {
           color: #555;
         }
   
-        /* (7) Divider line between product info & quantity label */
         .divider {
           border: none;
           border-top: 1px solid #ccc;
           margin: 10px 0;
+          width: 100%;
         }
   
-        /* Quantity control: big number w/ up/down on sides */
         .quantity-control {
           display: flex;
           align-items: center;
@@ -247,25 +255,25 @@ export const OrdersCarouselExtension = {
           text-align: center;
         }
   
-        /* (2) White background + inner shadow for dropdown */
         .reason-select {
           background: #fff;
           box-shadow: inset 0 0 4px rgba(0,0,0,0.1);
           border: none;
           border-radius: 4px;
           padding: 6px;
+          width: 100%;
         }
   
-        /* (3) Text area w/ inner shadow */
         .notes-area {
           box-shadow: inset 0 0 4px rgba(0,0,0,0.1);
           border: none;
           border-radius: 4px;
           padding: 6px;
           font-size: 14px;
+          width: 100%;
+          resize: vertical;
         }
   
-        /* (4) Outline button with black text */
         .outline-btn {
           background: none;
           border: 1px solid #ccc;
@@ -274,6 +282,7 @@ export const OrdersCarouselExtension = {
           border-radius: 4px;
           cursor: pointer;
           text-align: center;
+          width: 100%;
         }
         .outline-btn:hover {
           background: #f0f0f0;
@@ -396,7 +405,6 @@ export const OrdersCarouselExtension = {
               <div class="order-header">${orderNumber}</div>
   
               <div class="return-form">
-                <!-- (6) Put image on left, info on right -->
                 <div class="top-section">
                   <img src="${itemImage}" alt="Product Image" />
                   <div class="product-info-right">
@@ -407,15 +415,13 @@ export const OrdersCarouselExtension = {
                   </div>
                 </div>
   
-                <!-- (7) Divider line -->
                 <hr class="divider" />
   
                 <label>Quantity</label>
-                <!-- A big number with up/down on each side -->
                 <div class="quantity-control">
-                  <button class="qty-btn" id="qtyUp">&#94;</button>
-                  <div class="qty-display" id="qtyDisplay">${itemQuantity}</div>
                   <button class="qty-btn" id="qtyDown">&#8744;</button>
+                  <div class="qty-display" id="qtyDisplay">${itemQuantity}</div>
+                  <button class="qty-btn" id="qtyUp">&#94;</button>
                 </div>
   
                 <hr class="divider" />
@@ -431,13 +437,12 @@ export const OrdersCarouselExtension = {
                 <label for="additionalNotes">Additional Notes</label>
                 <textarea id="additionalNotes" name="additionalNotes" rows="3" class="notes-area"></textarea>
   
-                <!-- Outline button with black text -->
                 <button id="createReturnBtn" class="outline-btn">Create Return Request</button>
               </div>
             </div>
           `;
   
-          // Replace the card’s content
+          // Replace the card's content
           parentCard.innerHTML = returnFormHTML;
   
           // Now attach event listeners inside the new form
