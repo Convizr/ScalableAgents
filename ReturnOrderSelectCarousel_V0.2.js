@@ -212,7 +212,8 @@ export const OrdersCarouselExtension = {
         .product-info-right {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          justify-content: space-between;
+          height: 80px;
           flex: 1;
         }
         .product-title {
@@ -224,7 +225,7 @@ export const OrdersCarouselExtension = {
           flex-direction: column;
           font-size: 14px;
           color: #555;
-          gap: 4px;
+          gap: 16px;
         }
   
         .divider {
@@ -444,7 +445,7 @@ export const OrdersCarouselExtension = {
                   <div class="product-info-right">
                     <div class="product-title">${itemName}</div>
                     <div class="product-info">
-                      Quantity: ${itemQuantity}
+                      <div>Quantity: ${itemQuantity}</div>
                       <div>Price: €${itemPrice}</div>
                     </div>
                   </div>
