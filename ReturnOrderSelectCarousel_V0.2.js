@@ -12,7 +12,7 @@ export const OrdersCarouselExtension = {
       const orders = [
         {
           orderNumber: "#1003",
-          orderedDate: "10-01-2025",
+          orderedDate: "10-01-2025", 
           maxReturnDate: "10-02-2025",
           returnDate: "10-03-2025",
           items: [
@@ -28,7 +28,7 @@ export const OrdersCarouselExtension = {
         {
           orderNumber: "#1004",
           orderedDate: "10-02-2025",
-          maxReturnDate: "10-03-2025",
+          maxReturnDate: "10-03-2025", 
           returnDate: "11-03-2025",
           items: [
             {
@@ -54,7 +54,7 @@ export const OrdersCarouselExtension = {
           returnDate: "11-03-2025",
           items: [
             {
-              name: "Pre PRO 2.0",
+              name: "Pre PRO 2.0", 
               quantity: 2,
               price: 60,
               imageUrl:
@@ -71,7 +71,7 @@ export const OrdersCarouselExtension = {
         /* Carousel wrapper + container */
         .carousel-wrapper {
           position: relative;
-          width: 90%;
+          width: 100%;
           max-width: 1200px;
           margin: 0 auto;
         }
@@ -526,7 +526,6 @@ export const OrdersCarouselExtension = {
               notes,
             });
   
-            /*
             // If using Voiceflow or your own backend:
             window.voiceflow.chat.interact({
               type: 'complete',
@@ -538,7 +537,7 @@ export const OrdersCarouselExtension = {
                 notes
               }
             });
-            */
+            
           });
         });
       });
