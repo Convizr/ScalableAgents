@@ -69,11 +69,12 @@ export const ProductPageExtension = {
     }
 
     /**
-     * 2) Extract up to two images. If preferredUrl is present, use that;
-     *    otherwise use node.image.url.
+     * 2) Extract up to two *image* nodes. We specifically check for node.image?.url 
+     *    to avoid including the video node. If preferredUrl is present, use that; 
+     *    otherwise, use node.image.url.
      */
     const images = productData.media.nodes
-      .filter((node) => node.preferredUrl || node.image?.url)
+      .filter((node) => node.image?.url)  // <-- Only real images
       .map((node) => node.preferredUrl || node.image.url)
       .slice(0, 2);
 
@@ -114,8 +115,8 @@ export const ProductPageExtension = {
             <!-- Price Box for Variant ${index + 1} -->
             <div class="price-box" data-index="${index}">
               <input type="radio" name="priceSelection" class="price-radio" value="${index}" ${
-            index === 0 ? "checked" : ""
-          }>
+                index === 0 ? "checked" : ""
+              }>
               <div class="price-info">
                 <div class="price-title">${vWeight} - €${vPrice}</div>
                 <div class="price-subtitle">${servings} servings (€${vPricePerServing} per serving)</div>
