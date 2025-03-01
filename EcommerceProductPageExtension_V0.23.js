@@ -6,7 +6,7 @@ export const ProductPageExtension = {
     (trace.payload && trace.payload.name === "Custom_ProductPage"),
   render: ({ trace, element }) => {
     console.log("Raw Payload:", trace.payload);
-  
+
     let payloadObj;
     if (typeof trace.payload === "string") {
       try {
@@ -19,7 +19,7 @@ export const ProductPageExtension = {
       payloadObj = trace.payload || {};
     }
     console.log("Parsed Payload:", payloadObj);
-  
+
     // Check if ShopifyProductData is still a placeholder
     if (
       typeof payloadObj.ShopifyProductData === "string" &&
@@ -31,54 +31,69 @@ export const ProductPageExtension = {
       element.innerHTML = "<p>Error: rawProductData not provided.</p>";
       return;
     }
-  
+
     // Ensure ShopifyProductData is an array with at least one product
     if (!Array.isArray(payloadObj.ShopifyProductData) || payloadObj.ShopifyProductData.length === 0) {
       element.innerHTML = "<p>Error: No valid product data found.</p>";
       return;
     }
-  
+
     // NEW: Read the SelectedProduct variable and choose the matching product (if available)
     const selectedProductTitle = payloadObj.SelectedProduct || "";
     let productData;
     if (selectedProductTitle) {
       productData = payloadObj.ShopifyProductData.find(
-        product => product.title === selectedProductTitle
+        (product) => product.title === selectedProductTitle
       );
     }
     if (!productData) {
       productData = payloadObj.ShopifyProductData[0];
     }
-  
+
     if (!productData) {
       element.innerHTML = "<p>Product data not found.</p>";
       return;
     }
-  
-    // Extract video URL (first .mp4 with "1080p" in its URL)
-    const videoNode = productData.media.nodes.find(node => node.filename?.endsWith(".mp4"));
-    const videoUrl = videoNode?.sources.find(src => src.url.includes("1080p"))?.url || "";
-  
-    // Extract up to two images from the media nodes
+
+    /**
+     * 1) Extract the video URL using preferredUrl if it exists, 
+     *    otherwise fall back to the original 1080p search.
+     */
+    const videoNode = productData.media.nodes.find((node) => node.filename?.endsWith(".mp4"));
+    let videoUrl = "";
+    if (videoNode) {
+      videoUrl =
+        videoNode.preferredUrl ||
+        videoNode.sources?.find((src) => src.url.includes("1080p"))?.url ||
+        "";
+    }
+
+    /**
+     * 2) Extract up to two images. If preferredUrl is present, use that;
+     *    otherwise use node.image.url.
+     */
     const images = productData.media.nodes
-      .filter(node => node.image?.url)
-      .map(node => node.image.url)
+      .filter((node) => node.preferredUrl || node.image?.url)
+      .map((node) => node.preferredUrl || node.image.url)
       .slice(0, 2);
-  
-    // Extract product details
+
+    // 3) Extract product details
     const { title, description, variants } = productData;
+
     // Build variantArray: if variants exist, map them; otherwise use a fallback array.
     let variantArray = [];
     if (variants && variants.edges && variants.edges.length > 0) {
-      variantArray = variants.edges.map(edge => edge.node);
+      variantArray = variants.edges.map((edge) => edge.node);
     } else {
-      variantArray = [{
-        title: title,
-        price: "N/A",
-        id: ""
-      }];
+      variantArray = [
+        {
+          title: title,
+          price: "N/A",
+          id: "",
+        },
+      ];
     }
-  
+
     // Use the first variant for fallback values
     const variantFallback = variantArray[0];
     const fallbackPrice = variantFallback.price || "N/A";
@@ -86,7 +101,7 @@ export const ProductPageExtension = {
     const weight = fallbackVariantTitle.match(/\d+g/) ? fallbackVariantTitle : "400g";
     const servings = 16; // Placeholder value
     const pricePerServing = (parseFloat(fallbackPrice) / servings).toFixed(2);
-  
+
     // Helper function to render each variant block (price box and variant add container)
     function variantArrayToHTML(variants) {
       return variants
@@ -98,7 +113,9 @@ export const ProductPageExtension = {
           return `
             <!-- Price Box for Variant ${index + 1} -->
             <div class="price-box" data-index="${index}">
-              <input type="radio" name="priceSelection" class="price-radio" value="${index}" ${index === 0 ? "checked" : ""}>
+              <input type="radio" name="priceSelection" class="price-radio" value="${index}" ${
+            index === 0 ? "checked" : ""
+          }>
               <div class="price-info">
                 <div class="price-title">${vWeight} - €${vPrice}</div>
                 <div class="price-subtitle">${servings} servings (€${vPricePerServing} per serving)</div>
@@ -113,8 +130,8 @@ export const ProductPageExtension = {
         })
         .join("");
     }
-  
-    // Render the product page layout.
+
+    // 4) Render the product page layout.
     element.innerHTML = `
       <style>
         .product-container {
@@ -262,7 +279,7 @@ export const ProductPageExtension = {
           padding: 0 8px;
         }
       </style>
-  
+
       <div class="product-container">
         <div class="media-section">
           <div class="video-container">
@@ -272,7 +289,7 @@ export const ProductPageExtension = {
             </video>
           </div>
           <div class="image-column">
-            ${images.map(img => `<img src="${img}" alt="Product Image">`).join("")}
+            ${images.map((img) => `<img src="${img}" alt="Product Image">`).join("")}
           </div>
         </div>
         <div class="details-section">
@@ -284,7 +301,7 @@ export const ProductPageExtension = {
         </div>
       </div>
     `;
-  
+
     // --- Attach Modal Pop-up Functionality ---
     function openModal(contentHTML) {
       const overlay = document.createElement('div');
@@ -292,30 +309,34 @@ export const ProductPageExtension = {
       const content = document.createElement('div');
       content.className = 'modal-content';
       content.innerHTML = contentHTML;
+
       const closeBtn = document.createElement('button');
       closeBtn.className = 'modal-close';
       closeBtn.textContent = '×';
       closeBtn.addEventListener('click', () => {
         document.body.removeChild(overlay);
       });
+
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
           document.body.removeChild(overlay);
         }
       });
+
       content.appendChild(closeBtn);
       overlay.appendChild(content);
       document.body.appendChild(overlay);
     }
-  
+
     // Attach pop-up events for images and video
     const imageEls = element.querySelectorAll('.image-column img');
-    imageEls.forEach(img => {
+    imageEls.forEach((img) => {
       img.style.cursor = 'pointer';
       img.addEventListener('click', () => {
         openModal(`<img src="${img.src}" alt="Product Image">`);
       });
     });
+
     const videoEl = element.querySelector('.video-container video');
     if (videoEl) {
       videoEl.style.cursor = 'pointer';
@@ -323,15 +344,16 @@ export const ProductPageExtension = {
         openModal(`<video src="${videoUrl}" autoplay loop muted controls></video>`);
       });
     }
-  
+
     // Attach event listeners to each add-button so that clicking sends a complete payload.
     const addButtons = element.querySelectorAll('.add-button');
-    addButtons.forEach(button => {
+    addButtons.forEach((button) => {
       button.addEventListener('click', () => {
         // Find the closest variant-add-container and get its data-index.
         const containerEl = button.closest('.variant-add-container');
         const index = containerEl.getAttribute('data-index');
         const variantObj = variantArray[index];
+
         const completePayload = {
           productTitle: title,
           productPrice: variantObj.price || "N/A",
@@ -339,6 +361,7 @@ export const ProductPageExtension = {
           variantTitle: variantObj.title || title,
           quantity: 1
         };
+
         console.log("Submitting complete payload:", completePayload);
         window.voiceflow.chat.interact({
           type: 'complete',
