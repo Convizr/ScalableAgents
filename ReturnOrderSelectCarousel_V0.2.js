@@ -7,62 +7,46 @@ export const OrdersCarouselExtension = {
   
     render: ({ trace, element }) => {
       // ------------------------------------------
-      // 1) EXAMPLE DATA
+      // 1) PARSE PAYLOAD DATA
       // ------------------------------------------
-      const orders = [
-        {
-          orderNumber: "#1003",
-          orderedDate: "10-01-2025", 
-          maxReturnDate: "10-02-2025",
-          returnDate: "10-03-2025",
-          items: [
-            {
-              name: "Pre PRO 2.0",
-              quantity: 2,
-              price: 60,
-              imageUrl:
-                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
-            },
-          ],
-        },
-        {
-          orderNumber: "#1004",
-          orderedDate: "10-02-2025",
-          maxReturnDate: "10-03-2025", 
-          returnDate: "11-03-2025",
-          items: [
-            {
-              name: "Granola",
-              quantity: 1,
-              price: 20,
-              imageUrl:
-                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
-            },
-            {
-              name: "Pre PRO 2.0",
-              quantity: 2,
-              price: 60,
-              imageUrl:
-                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
-            },
-          ],
-        },
-        {
-          orderNumber: "#1005",
-          orderedDate: "10-02-2025",
-          maxReturnDate: "10-03-2025",
-          returnDate: "11-03-2025",
-          items: [
-            {
-              name: "Pre PRO 2.0", 
-              quantity: 2,
-              price: 60,
-              imageUrl:
-                "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000",
-            },
-          ],
-        },
-      ];
+      const payload = trace.payload || {};
+      
+      // Parse the input data from payload
+      const orderNumbers = payload.orderNumber ? payload.orderNumber.split(', ') : [];
+      const orderIDs = payload.orderID ? payload.orderID.split(', ') : [];
+      const maxReturnDates = payload.maxReturnData ? payload.maxReturnData.split(', ') : [];
+      const returnDates = payload.returnDate ? payload.returnDate.split(', ') : [];
+      
+      // Parse products and quantities (separated by | between orders and , within orders)
+      const orderProductsArray = payload.orderedProductTitles ? payload.orderedProductTitles.split(' | ') : [];
+      const orderQuantitiesArray = payload.orderedQuantity ? payload.orderedQuantity.split(' | ') : [];
+      
+      // Build orders array from payload data
+      const orders = [];
+      
+      for (let i = 0; i < orderNumbers.length; i++) {
+        const orderProducts = orderProductsArray[i] ? orderProductsArray[i].split(', ') : [];
+        const orderQuantities = orderQuantitiesArray[i] ? orderQuantitiesArray[i].split(', ').map(q => parseInt(q, 10)) : [];
+        
+        const items = [];
+        for (let j = 0; j < orderProducts.length; j++) {
+          items.push({
+            name: orderProducts[j],
+            quantity: orderQuantities[j] || 1,
+            price: 60, // Default price since not provided in payload
+            imageUrl: "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000"
+          });
+        }
+        
+        orders.push({
+          orderNumber: orderNumbers[i],
+          orderID: orderIDs[i] || "",
+          orderedDate: "10-01-2025", // Default date since not provided in payload
+          maxReturnDate: maxReturnDates[i] || "",
+          returnDate: returnDates[i] || "",
+          items: items
+        });
+      }
   
       // ------------------------------------------
       // 2) STYLES
@@ -353,6 +337,7 @@ export const OrdersCarouselExtension = {
                                   data-price="${item.price}"
                                   data-image="${item.imageUrl}"
                                   data-order="${order.orderNumber}"
+                                  data-orderid="${order.orderID || ''}"
                                 >
                                   <div class="item-left">
                                     <img class="item-image" src="${item.imageUrl}" alt="Product Image" />
@@ -427,6 +412,7 @@ export const OrdersCarouselExtension = {
           const itemPrice = row.getAttribute("data-price");
           const itemImage = row.getAttribute("data-image");
           const orderNumber = row.getAttribute("data-order");
+          const orderID = row.getAttribute("data-orderid");
   
           console.log(`Selected item: ${itemName} from order ${orderNumber}`);
   
@@ -519,6 +505,7 @@ export const OrdersCarouselExtension = {
             // Example: Log or send a payload
             console.log("Return Request Data:", {
               orderNumber,
+              orderID,
               itemName,
               itemPrice,
               requestedQuantity: currentQty,
@@ -531,6 +518,7 @@ export const OrdersCarouselExtension = {
               type: 'complete',
               payload: {
                 orderNumber,
+                orderID,
                 itemName,
                 requestedQuantity: currentQty,
                 reason,
