@@ -219,12 +219,12 @@ export const OrdersCarouselExtension = {
         }
         .product-title {
           font-weight: bold;
-          font-size: 16px;
+          font-size: 14px;
         }
         .product-info {
           display: flex;
           flex-direction: column;
-          font-size: 14px;
+          font-size: 12px;
           color: #555;
           gap: 8px;
         }
@@ -322,6 +322,27 @@ export const OrdersCarouselExtension = {
         .outline-btn:hover {
           background: #f0f0f0;
           border-color: #b0b0b0;
+        }
+        
+        /* Back button */
+        .back-button {
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          font-size: 14px;
+          margin-bottom: 10px;
+        }
+        .back-arrow {
+          margin-right: 5px;
+          font-size: 18px;
+        }
+        .header-container {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 8px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid #ccc;
         }
       `;
   
@@ -444,7 +465,13 @@ export const OrdersCarouselExtension = {
           // Build the Return Form layout
           const returnFormHTML = `
             <div class="order-card">
-              <div class="order-header">${orderNumber}</div>
+              <div class="header-container">
+                <div class="back-button" id="backToItems">
+                  <span class="back-arrow">&#8592;</span>
+                  <span>Back</span>
+                </div>
+                <div class="order-header">${orderNumber}</div>
+              </div>
   
               <div class="return-form">
                 <div class="top-section">
@@ -520,6 +547,59 @@ export const OrdersCarouselExtension = {
             }
             if (currentQty === 1) {
               qtyDown.disabled = true;
+            }
+          });
+  
+          // Back button functionality
+          const backButton = parentCard.querySelector("#backToItems");
+          backButton.addEventListener("click", () => {
+            // Find the original order card and restore it
+            const orderIndex = orders.findIndex(order => order.orderNumber === orderNumber);
+            if (orderIndex !== -1) {
+              const orderCard = `
+                <div class="order-card">
+                  <div class="order-header">${orderNumber}</div>
+                  <div class="order-line">Ordered date: ${orders[orderIndex].orderedDate}</div>
+                  <div class="order-line">Max return date: ${orders[orderIndex].maxReturnDate}</div>
+                  <div class="order-line">Return date: ${orders[orderIndex].returnDate}</div>
+                  <div class="items-container">
+                    ${orders[orderIndex].items
+                      .map((item) => {
+                        return `
+                          <div
+                            class="item-row"
+                            data-name="${item.name}"
+                            data-quantity="${item.quantity}"
+                            data-price="${item.price}"
+                            data-image="${item.imageUrl}"
+                            data-order="${orderNumber}"
+                            data-orderid="${orders[orderIndex].orderID || ''}"
+                          >
+                            <div class="item-left">
+                              <img class="item-image" src="${item.imageUrl}" alt="Product Image" />
+                              <div class="item-name">
+                                ${item.name}
+                              </div>
+                            </div>
+                            <div class="item-price">€${item.price}</div>
+                          </div>
+                        `;
+                      })
+                      .join("")}
+                  </div>
+                </div>
+              `;
+              
+              parentCard.innerHTML = orderCard;
+              
+              // Reattach event listeners to the new item rows
+              const newItemRows = parentCard.querySelectorAll(".item-row");
+              newItemRows.forEach(newRow => {
+                newRow.addEventListener("click", function() {
+                  // Simulate a click on this row to reopen the return form
+                  row.dispatchEvent(new Event("click"));
+                });
+              });
             }
           });
   
