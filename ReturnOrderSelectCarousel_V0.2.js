@@ -344,6 +344,30 @@ export const OrdersCarouselExtension = {
           padding-bottom: 8px;
           border-bottom: 1px solid #ccc;
         }
+        
+        .button-container {
+          display: flex;
+          gap: 10px;
+          margin-top: 10px;
+        }
+        
+        .back-btn {
+          background: none;
+          border: 1px solid #ccc;
+          color: #000;
+          padding: 12px;
+          border-radius: 4px;
+          cursor: pointer;
+          text-align: center;
+          flex: 1;
+          font-weight: 500;
+          transition: all 0.2s ease;
+        }
+        
+        .back-btn:hover {
+          background: #f0f0f0;
+          border-color: #b0b0b0;
+        }
       `;
   
       // ------------------------------------------
@@ -465,13 +489,7 @@ export const OrdersCarouselExtension = {
           // Build the Return Form layout
           const returnFormHTML = `
             <div class="order-card">
-              <div class="header-container">
-                <div class="back-button" id="backToItems">
-                  <span class="back-arrow">&#8592;</span>
-                  <span>Back</span>
-                </div>
-                <div class="order-header">${orderNumber}</div>
-              </div>
+              <div class="order-header">${orderNumber}</div>
   
               <div class="return-form">
                 <div class="top-section">
@@ -513,7 +531,10 @@ export const OrdersCarouselExtension = {
                 <label for="additionalNotes">Additional Notes</label>
                 <textarea id="additionalNotes" name="additionalNotes" rows="3" class="notes-area"></textarea>
   
-                <button id="createReturnBtn" class="outline-btn">Create Return Request</button>
+                <div class="button-container">
+                  <button id="backToItems" class="back-btn">Back</button>
+                  <button id="createReturnBtn" class="outline-btn">Create Return Request</button>
+                </div>
               </div>
             </div>
           `;
@@ -592,14 +613,8 @@ export const OrdersCarouselExtension = {
               
               parentCard.innerHTML = orderCard;
               
-              // Reattach event listeners to the new item rows
-              const newItemRows = parentCard.querySelectorAll(".item-row");
-              newItemRows.forEach(newRow => {
-                newRow.addEventListener("click", function() {
-                  // Simulate a click on this row to reopen the return form
-                  row.dispatchEvent(new Event("click"));
-                });
-              });
+              // We don't reattach event listeners to the new item rows
+              // This makes it impossible to click the same product or another product
             }
           });
   
