@@ -21,6 +21,9 @@ export const OrdersCarouselExtension = {
       const orderProductsArray = payload.orderedProductTitles ? payload.orderedProductTitles.split(' | ') : [];
       const orderQuantitiesArray = payload.orderedQuantity ? payload.orderedQuantity.split(' | ') : [];
       
+      // Parse raw product data
+      const rawProductData = payload.rawProductData ? JSON.parse(payload.rawProductData) : [];
+      
       // Build orders array from payload data
       const orders = [];
       
@@ -30,11 +33,23 @@ export const OrdersCarouselExtension = {
         
         const items = [];
         for (let j = 0; j < orderProducts.length; j++) {
+          // Find matching product in rawProductData
+          const productName = orderProducts[j];
+          const matchingProduct = rawProductData.find(product => product.title === productName);
+          
+          // Get price and image from matching product or use defaults
+          const price = matchingProduct ? 
+            parseFloat(matchingProduct.variants.edges[0].node.price) : 60;
+          
+          const imageUrl = matchingProduct && matchingProduct.media && matchingProduct.media.nodes.length > 0 ? 
+            matchingProduct.media.nodes[0].preferredUrl : 
+            "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000";
+          
           items.push({
-            name: orderProducts[j],
+            name: productName,
             quantity: orderQuantities[j] || 1,
-            price: 60, // Default price since not provided in payload
-            imageUrl: "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000"
+            price: price,
+            imageUrl: imageUrl
           });
         }
         
@@ -165,10 +180,12 @@ export const OrdersCarouselExtension = {
         }
         .item-name {
           font-size: 12px;
+          width: 150px;
         }
         .item-price {
           font-size: 14px;
           font-weight: bold;
+          width: 50px;
         }
         .item-row.selected {
           box-shadow: 0 0 0 2px orange;
@@ -311,10 +328,12 @@ export const OrdersCarouselExtension = {
       // ------------------------------------------
       // 3) BASE HTML
       // ------------------------------------------
+      const showArrows = orders.length > 2;
+      
       element.innerHTML = `
         <style>${styles}</style>
         <div class="carousel-wrapper">
-          <div class="carousel-arrow arrow-left" id="arrowLeft">&#10094;</div>
+          ${showArrows ? '<div class="carousel-arrow arrow-left" id="arrowLeft">&#10094;</div>' : ''}
           <div class="carousel-container">
             <div class="carousel-track" id="carouselTrack">
               ${orders
@@ -358,38 +377,40 @@ export const OrdersCarouselExtension = {
                 .join("")}
             </div>
           </div>
-          <div class="carousel-arrow arrow-right" id="arrowRight">&#10095;</div>
+          ${showArrows ? '<div class="carousel-arrow arrow-right" id="arrowRight">&#10095;</div>' : ''}
         </div>
       `;
   
       // ------------------------------------------
       // 4) CAROUSEL FUNCTIONALITY
       // ------------------------------------------
-      const track = element.querySelector("#carouselTrack");
-      const arrowLeft = element.querySelector("#arrowLeft");
-      const arrowRight = element.querySelector("#arrowRight");
-      const cardCount = orders.length;
-      const cardsToShow = 2;
-      let currentIndex = 0;
-  
-      function updateCarousel() {
-        const translatePercentage = -(100 / cardsToShow) * currentIndex;
-        track.style.transform = `translateX(${translatePercentage}%)`;
+      if (showArrows) {
+        const track = element.querySelector("#carouselTrack");
+        const arrowLeft = element.querySelector("#arrowLeft");
+        const arrowRight = element.querySelector("#arrowRight");
+        const cardCount = orders.length;
+        const cardsToShow = 2;
+        let currentIndex = 0;
+    
+        function updateCarousel() {
+          const translatePercentage = -(100 / cardsToShow) * currentIndex;
+          track.style.transform = `translateX(${translatePercentage}%)`;
+        }
+    
+        arrowLeft.addEventListener("click", () => {
+          if (currentIndex > 0) {
+            currentIndex--;
+            updateCarousel();
+          }
+        });
+    
+        arrowRight.addEventListener("click", () => {
+          if (currentIndex < cardCount - cardsToShow) {
+            currentIndex++;
+            updateCarousel();
+          }
+        });
       }
-  
-      arrowLeft.addEventListener("click", () => {
-        if (currentIndex > 0) {
-          currentIndex--;
-          updateCarousel();
-        }
-      });
-  
-      arrowRight.addEventListener("click", () => {
-        if (currentIndex < cardCount - cardsToShow) {
-          currentIndex++;
-          updateCarousel();
-        }
-      });
   
       // ------------------------------------------
       // 5) ITEM SELECTION => SHOW RETURN FORM
@@ -451,9 +472,15 @@ export const OrdersCarouselExtension = {
                 <label for="returnReason">Return Reason</label>
                 <select id="returnReason" name="returnReason" class="reason-select">
                   <option value="" disabled selected>Select a reason</option>
-                  <option value="damaged">Damaged</option>
-                  <option value="incorrect">Incorrect Item</option>
-                  <option value="other">Other</option>
+                  <option value="Color">Color</option>
+                  <option value="Defective">Defective</option>
+                  <option value="Not as Described">Not as Described</option>
+                  <option value="Other">Other</option>
+                  <option value="Size Too Large">Size Too Large</option>
+                  <option value="Size Too Small">Size Too Small</option>
+                  <option value="Style">Style</option>
+                  <option value="Unwanted">Unwanted</option>
+                  <option value="Wrong Item">Wrong Item</option>
                 </select>
   
                 <label for="additionalNotes">Additional Notes</label>
