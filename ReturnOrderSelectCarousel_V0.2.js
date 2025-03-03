@@ -315,7 +315,6 @@ export const OrdersCarouselExtension = {
           border-radius: 4px;
           cursor: pointer;
           text-align: center;
-          width: 100%;
           font-weight: 500;
           transition: all 0.2s ease;
         }
@@ -463,193 +462,201 @@ export const OrdersCarouselExtension = {
       const itemRows = element.querySelectorAll(".item-row");
       let selectedItem = null;
   
-      itemRows.forEach((row) => {
-        row.addEventListener("click", () => {
-          // Highlight the newly selected item
-          if (selectedItem) {
-            selectedItem.classList.remove("selected");
-          }
-          row.classList.add("selected");
-          selectedItem = row;
+      function attachItemRowEventListeners() {
+        const itemRows = element.querySelectorAll(".item-row");
+        itemRows.forEach((row) => {
+          row.addEventListener("click", handleItemRowClick);
+        });
+      }
   
-          // Extract item data
-          const itemName = row.getAttribute("data-name");
-          const itemQuantity = parseInt(row.getAttribute("data-quantity"), 10) || 1;
-          const itemPrice = row.getAttribute("data-price");
-          const itemImage = row.getAttribute("data-image");
-          const orderNumber = row.getAttribute("data-order");
-          const orderID = row.getAttribute("data-orderid");
+      function handleItemRowClick() {
+        // Highlight the newly selected item
+        if (selectedItem) {
+          selectedItem.classList.remove("selected");
+        }
+        this.classList.add("selected");
+        selectedItem = this;
   
-          console.log(`Selected item: ${itemName} from order ${orderNumber}`);
+        // Extract item data
+        const itemName = this.getAttribute("data-name");
+        const itemQuantity = parseInt(this.getAttribute("data-quantity"), 10) || 1;
+        const itemPrice = this.getAttribute("data-price");
+        const itemImage = this.getAttribute("data-image");
+        const orderNumber = this.getAttribute("data-order");
+        const orderID = this.getAttribute("data-orderid");
   
-          // Find the parent card to replace with the return form
-          const parentCard = row.closest(".carousel-card");
-          if (!parentCard) return;
+        console.log(`Selected item: ${itemName} from order ${orderNumber}`);
   
-          // Build the Return Form layout
-          const returnFormHTML = `
-            <div class="order-card">
-              <div class="order-header">${orderNumber}</div>
+        // Find the parent card to replace with the return form
+        const parentCard = this.closest(".carousel-card");
+        if (!parentCard) return;
   
-              <div class="return-form">
-                <div class="top-section">
-                  <img src="${itemImage}" alt="Product Image" />
-                  <div class="product-info-right">
-                    <div class="product-title">${itemName}</div>
-                    <div class="product-info">
-                      <div>Quantity: ${itemQuantity}</div>
-                      <div>Price: €${itemPrice}</div>
-                    </div>
+        // Build the Return Form layout
+        const returnFormHTML = `
+          <div class="order-card">
+            <div class="order-header">${orderNumber}</div>
+  
+            <div class="return-form">
+              <div class="top-section">
+                <img src="${itemImage}" alt="Product Image" />
+                <div class="product-info-right">
+                  <div class="product-title">${itemName}</div>
+                  <div class="product-info">
+                    <div>Quantity: ${itemQuantity}</div>
+                    <div>Price: €${itemPrice}</div>
                   </div>
-                </div>
-  
-                <hr class="divider" />
-  
-                <label>Quantity</label>
-                <div class="quantity-control">
-                  <button class="qty-btn" id="qtyDown" disabled>-</button>
-                  <div class="qty-display" id="qtyDisplay">1</div>
-                  <button class="qty-btn" id="qtyUp">+</button>
-                </div>
-  
-                <hr class="divider" />
-  
-                <label for="returnReason">Return Reason</label>
-                <select id="returnReason" name="returnReason" class="reason-select">
-                  <option value="" disabled selected>Select a reason</option>
-                  <option value="Color">Color</option>
-                  <option value="Defective">Defective</option>
-                  <option value="Not as Described">Not as Described</option>
-                  <option value="Other">Other</option>
-                  <option value="Size Too Large">Size Too Large</option>
-                  <option value="Size Too Small">Size Too Small</option>
-                  <option value="Style">Style</option>
-                  <option value="Unwanted">Unwanted</option>
-                  <option value="Wrong Item">Wrong Item</option>
-                </select>
-  
-                <label for="additionalNotes">Additional Notes</label>
-                <textarea id="additionalNotes" name="additionalNotes" rows="3" class="notes-area"></textarea>
-  
-                <div class="button-container">
-                  <button id="backToItems" class="back-btn">Back</button>
-                  <button id="createReturnBtn" class="outline-btn">Create Return Request</button>
                 </div>
               </div>
+  
+              <hr class="divider" />
+  
+              <label>Quantity</label>
+              <div class="quantity-control">
+                <button class="qty-btn" id="qtyDown" disabled>-</button>
+                <div class="qty-display" id="qtyDisplay">1</div>
+                <button class="qty-btn" id="qtyUp">+</button>
+              </div>
+  
+              <hr class="divider" />
+  
+              <label for="returnReason">Return Reason</label>
+              <select id="returnReason" name="returnReason" class="reason-select">
+                <option value="" disabled selected>Select a reason</option>
+                <option value="Color">Color</option>
+                <option value="Defective">Defective</option>
+                <option value="Not as Described">Not as Described</option>
+                <option value="Other">Other</option>
+                <option value="Size Too Large">Size Too Large</option>
+                <option value="Size Too Small">Size Too Small</option>
+                <option value="Style">Style</option>
+                <option value="Unwanted">Unwanted</option>
+                <option value="Wrong Item">Wrong Item</option>
+              </select>
+  
+              <label for="additionalNotes">Additional Notes</label>
+              <textarea id="additionalNotes" name="additionalNotes" rows="3" class="notes-area"></textarea>
+  
+              <div class="button-container">
+                <button id="backToItems" class="back-btn">Back</button>
+                <button id="createReturnBtn" class="outline-btn">Create Return Request</button>
+              </div>
             </div>
-          `;
+          </div>
+        `;
   
-          // Replace the card's content
-          parentCard.innerHTML = returnFormHTML;
+        // Replace the card's content
+        parentCard.innerHTML = returnFormHTML;
   
-          // Now attach event listeners inside the new form
-          const qtyDisplay = parentCard.querySelector("#qtyDisplay");
-          const qtyUp = parentCard.querySelector("#qtyUp");
-          const qtyDown = parentCard.querySelector("#qtyDown");
-          let currentQty = 1;
+        // Now attach event listeners inside the new form
+        const qtyDisplay = parentCard.querySelector("#qtyDisplay");
+        const qtyUp = parentCard.querySelector("#qtyUp");
+        const qtyDown = parentCard.querySelector("#qtyDown");
+        let currentQty = 1;
   
-          // Increment/Decrement logic
-          qtyUp.addEventListener("click", () => {
-            if (currentQty < itemQuantity) {
-              currentQty++;
-              qtyDisplay.textContent = currentQty;
-              qtyDown.disabled = false;
-            }
-            if (currentQty === itemQuantity) {
-              qtyUp.disabled = true;
-            }
-          });
-          
-          qtyDown.addEventListener("click", () => {
-            if (currentQty > 1) {
-              currentQty--;
-              qtyDisplay.textContent = currentQty;
-              qtyUp.disabled = false;
-            }
-            if (currentQty === 1) {
-              qtyDown.disabled = true;
-            }
-          });
+        // Increment/Decrement logic
+        qtyUp.addEventListener("click", () => {
+          if (currentQty < itemQuantity) {
+            currentQty++;
+            qtyDisplay.textContent = currentQty;
+            qtyDown.disabled = false;
+          }
+          if (currentQty === itemQuantity) {
+            qtyUp.disabled = true;
+          }
+        });
+        
+        qtyDown.addEventListener("click", () => {
+          if (currentQty > 1) {
+            currentQty--;
+            qtyDisplay.textContent = currentQty;
+            qtyUp.disabled = false;
+          }
+          if (currentQty === 1) {
+            qtyDown.disabled = true;
+          }
+        });
   
-          // Back button functionality
-          const backButton = parentCard.querySelector("#backToItems");
-          backButton.addEventListener("click", () => {
-            // Find the original order card and restore it
-            const orderIndex = orders.findIndex(order => order.orderNumber === orderNumber);
-            if (orderIndex !== -1) {
-              const orderCard = `
-                <div class="order-card">
-                  <div class="order-header">${orderNumber}</div>
-                  <div class="order-line">Ordered date: ${orders[orderIndex].orderedDate}</div>
-                  <div class="order-line">Max return date: ${orders[orderIndex].maxReturnDate}</div>
-                  <div class="order-line">Return date: ${orders[orderIndex].returnDate}</div>
-                  <div class="items-container">
-                    ${orders[orderIndex].items
-                      .map((item) => {
-                        return `
-                          <div
-                            class="item-row"
-                            data-name="${item.name}"
-                            data-quantity="${item.quantity}"
-                            data-price="${item.price}"
-                            data-image="${item.imageUrl}"
-                            data-order="${orderNumber}"
-                            data-orderid="${orders[orderIndex].orderID || ''}"
-                          >
-                            <div class="item-left">
-                              <img class="item-image" src="${item.imageUrl}" alt="Product Image" />
-                              <div class="item-name">
-                                ${item.name}
-                              </div>
+        // Back button functionality
+        const backButton = parentCard.querySelector("#backToItems");
+        backButton.addEventListener("click", () => {
+          // Find the original order card and restore it
+          const orderIndex = orders.findIndex(order => order.orderNumber === orderNumber);
+          if (orderIndex !== -1) {
+            const orderCard = `
+              <div class="order-card">
+                <div class="order-header">${orderNumber}</div>
+                <div class="order-line">Ordered date: ${orders[orderIndex].orderedDate}</div>
+                <div class="order-line">Max return date: ${orders[orderIndex].maxReturnDate}</div>
+                <div class="order-line">Return date: ${orders[orderIndex].returnDate}</div>
+                <div class="items-container">
+                  ${orders[orderIndex].items
+                    .map((item) => {
+                      return `
+                        <div
+                          class="item-row"
+                          data-name="${item.name}"
+                          data-quantity="${item.quantity}"
+                          data-price="${item.price}"
+                          data-image="${item.imageUrl}"
+                          data-order="${orderNumber}"
+                          data-orderid="${orders[orderIndex].orderID || ''}"
+                        >
+                          <div class="item-left">
+                            <img class="item-image" src="${item.imageUrl}" alt="Product Image" />
+                            <div class="item-name">
+                              ${item.name}
                             </div>
-                            <div class="item-price">€${item.price}</div>
                           </div>
-                        `;
-                      })
-                      .join("")}
-                  </div>
+                          <div class="item-price">€${item.price}</div>
+                        </div>
+                      `;
+                    })
+                    .join("")}
                 </div>
-              `;
-              
-              parentCard.innerHTML = orderCard;
-              
-              // We don't reattach event listeners to the new item rows
-              // This makes it impossible to click the same product or another product
-            }
+              </div>
+            `;
+            
+            parentCard.innerHTML = orderCard;
+            
+            // Reattach event listeners to the new item rows
+            attachItemRowEventListeners();
+          }
+        });
+  
+        // "Create Return Request" button
+        const createReturnBtn = parentCard.querySelector("#createReturnBtn");
+        createReturnBtn.addEventListener("click", () => {
+          const reason = parentCard.querySelector("#returnReason").value;
+          const notes = parentCard.querySelector("#additionalNotes").value;
+  
+          // Example: Log or send a payload
+          console.log("Return Request Data:", {
+            orderNumber,
+            orderID,
+            itemName,
+            itemPrice,
+            requestedQuantity: currentQty,
+            reason,
+            notes,
           });
   
-          // "Create Return Request" button
-          const createReturnBtn = parentCard.querySelector("#createReturnBtn");
-          createReturnBtn.addEventListener("click", () => {
-            const reason = parentCard.querySelector("#returnReason").value;
-            const notes = parentCard.querySelector("#additionalNotes").value;
-  
-            // Example: Log or send a payload
-            console.log("Return Request Data:", {
+          // If using Voiceflow or your own backend:
+          window.voiceflow.chat.interact({
+            type: 'complete',
+            payload: {
               orderNumber,
               orderID,
               itemName,
-              itemPrice,
               requestedQuantity: currentQty,
               reason,
-              notes,
-            });
-  
-            // If using Voiceflow or your own backend:
-            window.voiceflow.chat.interact({
-              type: 'complete',
-              payload: {
-                orderNumber,
-                orderID,
-                itemName,
-                requestedQuantity: currentQty,
-                reason,
-                notes
-              }
-            });
-            
+              notes
+            }
           });
+          
         });
-      });
+      }
+  
+      // Initial attachment of event listeners
+      attachItemRowEventListeners();
     },
   };
