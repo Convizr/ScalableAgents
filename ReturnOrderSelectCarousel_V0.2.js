@@ -14,7 +14,7 @@ export const OrdersCarouselExtension = {
       // Parse the input data from payload
       const orderNumbers = payload.orderNumber ? payload.orderNumber.split(', ') : [];
       const orderIDs = payload.orderID ? payload.orderID.split(', ') : [];
-      const extractReturnDays = payload.extractReturnDays ? parseInt(payload.extractReturnDays, 10) : 14; // Default to 14 days if not provided
+      const extractReturnDays = payload.maxReturnDays ? parseInt(payload.maxReturnDays, 10) : 14; // Default to 14 days if not provided
       const returnDates = payload.returnDate ? payload.returnDate.split(', ') : [];
       
       // Parse products and quantities (separated by | between orders and , within orders)
@@ -62,7 +62,6 @@ export const OrdersCarouselExtension = {
           orderID: orderIDs[i] || "",
           orderedDate: returnDates[i] || "10-01-2025", // Use returnDate as the order creation date
           maxReturnDate: maxReturnDate,
-          returnDate: returnDates[i] || "",
           items: items
         });
       }
@@ -79,12 +78,12 @@ export const OrdersCarouselExtension = {
           // Add the specified number of days
           date.setDate(date.getDate() + days);
           
-          // Format the result as MM-DD-YYYY
-          const month = String(date.getMonth() + 1).padStart(2, '0');
+          // Format the result as DD-MM-YYYY
           const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
           const year = date.getFullYear();
           
-          return `${month}-${day}-${year}`;
+          return `${day}-${month}-${year}`;
         } catch (e) {
           console.error("Error calculating max return date:", e);
           return "Error calculating date";
@@ -416,7 +415,6 @@ export const OrdersCarouselExtension = {
                         <div class="order-header">${order.orderNumber}</div>
                         <div class="order-line">Ordered date: ${order.orderedDate}</div>
                         <div class="order-line">Max return date: ${order.maxReturnDate}</div>
-                        <div class="order-line">Return date: ${order.returnDate}</div>
                         <div class="items-container">
                           ${order.items
                             .map((item) => {
@@ -615,7 +613,6 @@ export const OrdersCarouselExtension = {
                 <div class="order-header">${orderNumber}</div>
                 <div class="order-line">Ordered date: ${orders[orderIndex].orderedDate}</div>
                 <div class="order-line">Max return date: ${orders[orderIndex].maxReturnDate}</div>
-                <div class="order-line">Return date: ${orders[orderIndex].returnDate}</div>
                 <div class="items-container">
                   ${orders[orderIndex].items
                     .map((item) => {
