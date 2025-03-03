@@ -50,7 +50,7 @@ export const OrdersCarouselExtension = {
           const imageUrl = matchingProduct && matchingProduct.media && matchingProduct.media.nodes && 
                           matchingProduct.media.nodes.length > 0 ? 
                           matchingProduct.media.nodes[0].preferredUrl : 
-                          "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000";
+                          "No Image";
           
           items.push({
             name: productName,
@@ -63,7 +63,7 @@ export const OrdersCarouselExtension = {
         orders.push({
           orderNumber: orderNumbers[i],
           orderID: orderIDs[i] || "",
-          orderedDate: returnDates[i] || "10-01-2025", // Use returnDate as the order creation date
+          orderedDate: returnDates[i] || "No Date", // Use returnDate as the order creation date
           maxReturnDate: maxReturnDate,
           items: items
         });
