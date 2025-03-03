@@ -42,12 +42,14 @@ export const OrdersCarouselExtension = {
           const matchingProduct = rawProductData.find(product => product.title === productName);
           
           // Get price and image from matching product or use defaults
-          const price = matchingProduct ? 
-            parseFloat(matchingProduct.variants.edges[0].node.price) : 60;
+          const price = matchingProduct && matchingProduct.variants && matchingProduct.variants.edges && 
+                        matchingProduct.variants.edges.length > 0 ? 
+                        parseFloat(matchingProduct.variants.edges[0].node.price) : 60;
           
-          const imageUrl = matchingProduct && matchingProduct.media && matchingProduct.media.nodes.length > 0 ? 
-            matchingProduct.media.nodes[0].preferredUrl : 
-            "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000";
+          const imageUrl = matchingProduct && matchingProduct.media && matchingProduct.media.nodes && 
+                          matchingProduct.media.nodes.length > 0 ? 
+                          matchingProduct.media.nodes[0].preferredUrl : 
+                          "https://cdn.shopify.com/s/files/1/0254/4667/8590/files/preview_images/b19dcfcc73194fc8b5ef20d34e2a58c1.thumbnail.0000000000.jpg?v=1737192051&width=1000";
           
           items.push({
             name: productName,
