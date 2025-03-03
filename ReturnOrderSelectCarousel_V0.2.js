@@ -73,7 +73,8 @@ export const OrdersCarouselExtension = {
           const parts = orderDate.split('-');
           if (parts.length !== 3) return "Invalid date";
           
-          const date = new Date(parts[2], parts[0] - 1, parts[1]); // Year, Month (0-based), Day
+          // Create date object with correct format: Month (0-based), Day, Year
+          const date = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
           
           // Add the specified number of days
           date.setDate(date.getDate() + days);
