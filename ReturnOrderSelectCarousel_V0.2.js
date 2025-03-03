@@ -21,8 +21,9 @@ export const OrdersCarouselExtension = {
       const orderProductsArray = payload.orderedProductTitles ? payload.orderedProductTitles.split(' | ') : [];
       const orderQuantitiesArray = payload.orderedQuantity ? payload.orderedQuantity.split(' | ') : [];
       
-      // Parse raw product data
-      const rawProductData = payload.rawProductData ? JSON.parse(payload.rawProductData) : [];
+      const rawProductData = Array.isArray(payload.rawProductData)
+      ? payload.rawProductData
+      : [];
       
       // Build orders array from payload data
       const orders = [];
