@@ -226,7 +226,7 @@ export const OrdersCarouselExtension = {
           flex-direction: column;
           font-size: 14px;
           color: #555;
-          gap: 16px;
+          gap: 8px;
         }
   
         .divider {
@@ -361,7 +361,7 @@ export const OrdersCarouselExtension = {
                                   <div class="item-left">
                                     <img class="item-image" src="${item.imageUrl}" alt="Product Image" />
                                     <div class="item-name">
-                                      ${item.name} (x${item.quantity})
+                                      ${item.name}
                                     </div>
                                   </div>
                                   <div class="item-price">€${item.price}</div>
