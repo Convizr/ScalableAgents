@@ -69,22 +69,26 @@ export const OrdersCarouselExtension = {
       // Function to calculate max return date
       function calculateMaxReturnDate(orderDate, days) {
         try {
-          // Parse the date (assuming format is MM-DD-YYYY)
+          // Parse the date (DD-MM-YYYY)
           const parts = orderDate.split('-');
           if (parts.length !== 3) return "Invalid date";
           
-          // Create date object with correct format: Month (0-based), Day, Year
-          const date = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10);
+          const year = parseInt(parts[2], 10);
+          
+          // Create date object with correct format: Year, Month (0-based), Day
+          const date = new Date(year, month - 1, day);
           
           // Add the specified number of days
           date.setDate(date.getDate() + days);
           
           // Format the result as DD-MM-YYYY
-          const day = String(date.getDate()).padStart(2, '0');
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const year = date.getFullYear();
+          const day_result = String(date.getDate()).padStart(2, '0');
+          const month_result = String(date.getMonth() + 1).padStart(2, '0');
+          const year_result = date.getFullYear();
           
-          return `${day}-${month}-${year}`;
+          return `${day_result}-${month_result}-${year_result}`;
         } catch (e) {
           console.error("Error calculating max return date:", e);
           return "Error calculating date";
