@@ -47,10 +47,24 @@ export const OrdersCarouselExtension = {
                         matchingProduct.variants.edges.length > 0 ? 
                         parseFloat(matchingProduct.variants.edges[0].node.price) : 60;
           
-          const imageUrl = matchingProduct && matchingProduct.media && matchingProduct.media.nodes && 
-                          matchingProduct.media.nodes.length > 0 ? 
-                          matchingProduct.media.nodes[0].preferredUrl : 
-                          "No Image";
+          // Make sure to use the HD-1080p image URL when available
+          let imageUrl = "No Image";
+          if (matchingProduct && matchingProduct.media && matchingProduct.media.nodes && matchingProduct.media.nodes.length > 0) {
+            const mediaNode = matchingProduct.media.nodes[0];
+            
+            // Check if it's a video (has sources array)
+            if (mediaNode.sources && mediaNode.sources.length > 0) {
+              // Find the 1080p version
+              const hdSource = mediaNode.sources.find(source => source.url.includes('HD-1080p'));
+              imageUrl = hdSource ? hdSource.url : mediaNode.preferredUrl;
+            } else if (mediaNode.image && mediaNode.image.url) {
+              // It's an image
+              imageUrl = mediaNode.image.url;
+            } else {
+              // Fallback to preferredUrl
+              imageUrl = mediaNode.preferredUrl;
+            }
+          }
           
           items.push({
             name: productName,
