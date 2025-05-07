@@ -139,9 +139,9 @@ export const DisableInputExtension = {
     type: 'effect',
     match: ({ trace }) =>
       trace.type === 'ext_disableInput' ||
-      trace.payload.name === 'ext_disableInput',
+      (trace.payload && trace.payload.name === 'ext_disableInput'),
     effect: ({ trace }) => {
-      const { isDisabled } = trace.payload
+      const { isDisabled } = trace.payload || { isDisabled: false }
   
       function disableInput() {
         const chatDiv = document.getElementById('voiceflow-chat')
