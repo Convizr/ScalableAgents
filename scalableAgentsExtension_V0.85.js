@@ -7,16 +7,17 @@ export const VariantSelectionForm = {
         console.log('Rendering VariantSelectionForm');
 
         // Parse payload dynamically
-        let payloadObj;
-        if (typeof trace.payload === 'string') {
-            try {
-                payloadObj = JSON.parse(trace.payload);
-            } catch (e) {
-                console.error('Error parsing payload:', e);
-                payloadObj = {};
+        let payloadObj = {};
+        if (trace.payload) {
+            if (typeof trace.payload === 'string') {
+                try {
+                    payloadObj = JSON.parse(trace.payload);
+                } catch (e) {
+                    console.error('Error parsing payload:', e);
+                }
+            } else {
+                payloadObj = trace.payload;
             }
-        } else {
-            payloadObj = trace.payload || {};
         }
 
         console.log('Parsed Payload:', payloadObj);
@@ -134,7 +135,7 @@ export const VariantSelectionForm = {
     },
 };
 
-  export const OrderReturnForm = {
+export const OrderReturnForm = {
     name: 'OrderReturnForm',
     type: 'response',
     match: ({ trace }) =>
@@ -143,16 +144,17 @@ export const VariantSelectionForm = {
         console.log('Rendering OrderReturnForm');
 
         // Parse payload dynamically
-        let payloadObj;
-        if (typeof trace.payload === 'string') {
-            try {
-                payloadObj = JSON.parse(trace.payload);
-            } catch (e) {
-                console.error('Error parsing payload:', e);
-                payloadObj = {};
+        let payloadObj = {};
+        if (trace.payload) {
+            if (typeof trace.payload === 'string') {
+                try {
+                    payloadObj = JSON.parse(trace.payload);
+                } catch (e) {
+                    console.error('Error parsing payload:', e);
+                }
+            } else {
+                payloadObj = trace.payload;
             }
-        } else {
-            payloadObj = trace.payload || {};
         }
 
         console.log('Parsed Payload:', payloadObj);
@@ -284,16 +286,17 @@ export const OrderSelectionExtension = {
         console.log('Rendering OrderSelectionExtension');
 
         // Parse payload dynamically
-        let payloadObj;
-        if (typeof trace.payload === 'string') {
-            try {
-                payloadObj = JSON.parse(trace.payload);
-            } catch (e) {
-                console.error('Error parsing payload:', e);
-                payloadObj = {};
+        let payloadObj = {};
+        if (trace.payload) {
+            if (typeof trace.payload === 'string') {
+                try {
+                    payloadObj = JSON.parse(trace.payload);
+                } catch (e) {
+                    console.error('Error parsing payload:', e);
+                }
+            } else {
+                payloadObj = trace.payload;
             }
-        } else {
-            payloadObj = trace.payload || {};
         }
 
         console.log('Parsed Payload:', payloadObj);
