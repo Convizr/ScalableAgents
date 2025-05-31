@@ -35,8 +35,7 @@ export const AIStylistExtension = {
             margin: 20px 0;
           }
           .stylist-tile {
-            background: #fff;
-            border-radius: 10px;
+            border-radius: 5px;
             overflow: hidden;
             cursor: pointer;
             transition: box-shadow .2s;
