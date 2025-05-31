@@ -31,56 +31,61 @@ export const AIStylistExtension = {
           .stylist-grid {
             display: grid;
             gap: 16px;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(2, 1fr); /* 2 columns for most widget widths */
             margin: 20px 0;
           }
           .stylist-tile {
-            position: relative;
+            background: #fff;
+            border-radius: 10px;
             overflow: hidden;
             cursor: pointer;
-            transition: transform .2s;
+            transition: box-shadow .2s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
           }
           .stylist-tile img {
-            width: 100%;
-            display: block;
-            border-radius: 6px;
+            width: 120px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 8px;
           }
           .stylist-tile.active {
-            transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
             z-index: 2;
           }
-          .product-panel.side-by-side-panel {
-            display: flex;
+          .product-panel.vertical-panel {
             background: #e9e9e9;
             border-radius: 12px;
-            padding: 24px;
-            gap: 32px;
-            align-items: flex-start;
-            min-width: 600px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          }
-          .look-image-col {
-            flex: 1 1 40%;
+            padding: 20px 10px;
+            margin-top: 12px;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            flex-direction: column;
+            align-items: center;
           }
           .look-image-large {
-            max-width: 260px;
+            width: 70%;
+            max-width: 220px;
             border-radius: 10px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 18px;
           }
           .product-list-col {
-            flex: 2 1 60%;
+            width: 100%;
           }
           .product-list-col h3 {
-            margin: 0 0 12px 0;
+            text-align: center;
+            margin-bottom: 10px;
             font-size: 22px;
           }
           .keywords {
             font-size: 12px;
             color: #666;
             margin-bottom: 18px;
+            text-align: center;
           }
           .keywords span {
             display: inline-block;
@@ -94,47 +99,43 @@ export const AIStylistExtension = {
             align-items: center;
             background: #fff;
             border-radius: 8px;
-            margin-bottom: 16px;
-            padding: 12px 16px;
+            margin-bottom: 14px;
+            padding: 10px 12px;
             box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-            gap: 16px;
+            gap: 12px;
           }
           .product-thumb {
-            width: 60px;
-            height: 60px;
+            width: 48px;
+            height: 48px;
             object-fit: cover;
             border-radius: 6px;
-            margin-right: 12px;
+            margin-right: 10px;
           }
           .product-info {
             flex: 1;
           }
           .product-title {
             font-weight: 600;
-            margin-bottom: 4px;
-          }
-          .product-price {
-            color: #447f76;
             font-size: 15px;
             margin-bottom: 2px;
           }
-          .product-variant {
-            color: #888;
-            font-size: 12px;
+          .product-price {
+            color: #447f76;
+            font-size: 14px;
           }
           .product-actions {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
           }
           .product-actions button {
             background: #447f76;
             color: #fff;
             border: none;
             border-radius: 4px;
-            padding: 6px 12px;
+            padding: 5px 10px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             margin-bottom: 2px;
             transition: background-color 0.2s;
           }
@@ -172,9 +173,9 @@ export const AIStylistExtension = {
           activeTile = isReopening ? tile : null;
   
           if (isReopening) {
-            // build side-panel with side-by-side layout
+            // build vertical panel: look image above, products below
             const panel = document.createElement('div');
-            panel.classList.add('product-panel', 'side-by-side-panel');
+            panel.classList.add('product-panel', 'vertical-panel');
   
             // Get connected products
             const products = shopifyProductData.allProducts || [];
@@ -183,9 +184,7 @@ export const AIStylistExtension = {
   
             // Build the HTML
             panel.innerHTML = `
-              <div class="look-image-col">
-                <img src="${imageUrl}" alt="${model['Look Name']}" class="look-image-large" />
-              </div>
+              <img src="${imageUrl}" alt="${model['Look Name']}" class="look-image-large" />
               <div class="product-list-col">
                 <h3>${model['Look Name']}</h3>
                 <div class="keywords">
@@ -195,11 +194,10 @@ export const AIStylistExtension = {
                 </div>
                 ${connectedProducts.map(p => `
                   <div class="product-card" data-product-title="${p.title}">
-                    <img src="${p.thumb || 'https://via.placeholder.com/60'}" class="product-thumb" />
+                    <img src="${p.thumb || 'https://via.placeholder.com/48'}" class="product-thumb" />
                     <div class="product-info">
                       <div class="product-title">${p.title}</div>
                       <div class="product-price">€${p.price || 'N/A'}</div>
-                      <div class="product-variant">${(p.variants && p.variants.join(', ')) || ''}</div>
                     </div>
                     <div class="product-actions">
                       <button data-action="add">Add</button>
