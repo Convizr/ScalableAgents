@@ -39,7 +39,6 @@ export const AIStylistExtension = {
             overflow: hidden;
             cursor: pointer;
             transition: box-shadow .2s;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
             display: flex;
             flex-direction: column;
             align-items: center;
