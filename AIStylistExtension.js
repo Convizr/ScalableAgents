@@ -140,6 +140,41 @@ export const AIStylistExtension = {
           .product-actions button:hover {
             background: #35635c;
           }
+          .product-panel.full-width-panel {
+            background: #e9e9e9;
+            border-radius: 12px;
+            padding: 20px 10px;
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+          }
+          .look-image-full {
+            width: 100%;
+            max-width: 340px;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 18px;
+            display: block;
+          }
+          .back-btn {
+            background: #fff;
+            color: #447f76;
+            border: 1px solid #447f76;
+            border-radius: 6px;
+            padding: 6px 18px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: background 0.2s, color 0.2s;
+          }
+          .back-btn:hover {
+            background: #447f76;
+            color: #fff;
+          }
         </style>
         <div class="stylist-grid"></div>
       `;
@@ -171,9 +206,28 @@ export const AIStylistExtension = {
           activeTile = isReopening ? tile : null;
   
           if (isReopening) {
-            // build vertical panel: look image above, products below
+            // Hide the grid
+            grid.style.display = 'none';
+  
+            // Remove any previous full-width panel
+            const prevFullPanel = container.querySelector('.full-width-panel');
+            if (prevFullPanel) prevFullPanel.remove();
+  
+            // build full-width panel: look image above, products below
             const panel = document.createElement('div');
-            panel.classList.add('product-panel', 'vertical-panel');
+            panel.classList.add('product-panel', 'full-width-panel');
+  
+            // Back button
+            const backBtn = document.createElement('button');
+            backBtn.textContent = '← Back';
+            backBtn.className = 'back-btn';
+            backBtn.style.marginBottom = '16px';
+            backBtn.addEventListener('click', () => {
+              panel.remove();
+              grid.style.display = '';
+              if (activeTile) activeTile.classList.remove('active');
+            });
+            panel.appendChild(backBtn);
   
             // Get connected products
             const products = shopifyProductData.allProducts || [];
@@ -181,15 +235,10 @@ export const AIStylistExtension = {
             const connectedProducts = products.filter(p => connectedProductTitles.includes(p.title));
   
             // Build the HTML
-            panel.innerHTML = `
-              <img src="${imageUrl}" alt="${model['Look Name']}" class="look-image-large" />
+            panel.innerHTML += `
+              <img src="${imageUrl}" alt="${model['Look Name']}" class="look-image-full" />
               <div class="product-list-col">
-                <h3>${model['Look Name']}</h3>
-                <div class="keywords">
-                  ${(model.Keywords || '').split(', ').map(keyword => 
-                    `<span>${keyword}</span>`
-                  ).join('')}
-                </div>
+                <h3 style="text-align:center; margin-bottom: 18px; font-size: 24px;">${model['Look Name']}</h3>
                 ${connectedProducts.map(p => `
                   <div class="product-card" data-product-title="${p.title}">
                     <img src="${p.thumb || 'https://via.placeholder.com/48'}" class="product-thumb" />
@@ -224,7 +273,7 @@ export const AIStylistExtension = {
               });
             });
   
-            tile.appendChild(panel);
+            container.appendChild(panel);
           }
         });
   
