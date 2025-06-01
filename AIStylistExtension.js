@@ -56,7 +56,6 @@ export const AIStylistExtension = {
             z-index: 2;
           }
           .product-panel.vertical-panel {
-            background: #e9e9e9;
             border-radius: 12px;
             padding: 20px 10px;
             margin-top: 12px;
@@ -267,6 +266,16 @@ export const AIStylistExtension = {
                 btn.addEventListener('click', e => {
                   e.stopPropagation();
                   const action = btn.dataset.action;
+                  if (action === 'view') {
+                    // Find the product object
+                    const product = connectedProducts.find(p => p.title === productTitle);
+                    // Use the handle property to construct the Shopify product URL
+                    if (product && product.handle) {
+                      const shopifyUrl = `https://yourshopifystore.com/products/${product.handle}`;
+                      window.open(shopifyUrl, '_blank');
+                      return;
+                    }
+                  }
                   window.voiceflow.chat.interact({
                     type: 'complete',
                     payload: {
