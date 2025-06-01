@@ -225,8 +225,10 @@ export const AIStylistExtension = {
                 <h3 style="text-align:center; margin-bottom: 18px; font-size: 24px;">${model['Look Name']}</h3>
             `;
   
-            // Use connectedProducts from the model (raw Shopify format)
-            const connectedProducts = model.connectedProducts || [];
+            // Filter products from shopifyProductData using Connected Products titles
+            const allProducts = Array.isArray(shopifyProductData) ? shopifyProductData : [];
+            const connectedProductTitles = (model['Connected Products'] || '').split(',').map(t => t.trim()).filter(Boolean);
+            const connectedProducts = allProducts.filter(p => connectedProductTitles.includes(p.title));
             panelHTML += connectedProducts.map(p => {
               // Get product image (Shopify format)
               const productImg = p.featuredMedia?.preview?.image?.url || 'https://via.placeholder.com/48';
