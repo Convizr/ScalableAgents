@@ -217,43 +217,46 @@ export const AIStylistExtension = {
             const panel = document.createElement('div');
             panel.classList.add('product-panel', 'full-width-panel');
   
-            // Back button
-            const backBtn = document.createElement('button');
-            backBtn.textContent = '← Back';
-            backBtn.className = 'back-btn';
-            backBtn.style.marginBottom = '16px';
+            // Build the HTML for the panel (including back button)
+            let panelHTML = `
+              <button class="back-btn" style="margin-bottom: 16px;">← Back</button>
+              <img src="${imageUrl}" alt="${model['Look Name']}" class="look-image-full" />
+              <div class="product-list-col">
+                <h3 style="text-align:center; margin-bottom: 18px; font-size: 24px;">${model['Look Name']}</h3>
+            `;
+  
+            // Use connectedProducts from the model (raw Shopify format)
+            const connectedProducts = model.connectedProducts || [];
+            panelHTML += connectedProducts.map(p => {
+              // Get product image (Shopify format)
+              const productImg = p.featuredMedia?.preview?.image?.url || 'https://via.placeholder.com/48';
+              // Get price from first variant
+              const price = p.variants?.edges?.[0]?.node?.price || 'N/A';
+              return `
+                <div class="product-card" data-product-title="${p.title}">
+                  <img src="${productImg}" class="product-thumb" />
+                  <div class="product-info">
+                    <div class="product-title">${p.title}</div>
+                    <div class="product-price">€${price}</div>
+                  </div>
+                  <div class="product-actions">
+                    <button data-action="add">Add</button>
+                    <button data-action="view">View</button>
+                  </div>
+                </div>
+              `;
+            }).join('');
+            panelHTML += '</div>';
+  
+            panel.innerHTML = panelHTML;
+  
+            // Back button logic
+            const backBtn = panel.querySelector('.back-btn');
             backBtn.addEventListener('click', () => {
               panel.remove();
               grid.style.display = '';
               if (activeTile) activeTile.classList.remove('active');
             });
-            panel.appendChild(backBtn);
-  
-            // Get connected products
-            const products = shopifyProductData.allProducts || [];
-            const connectedProductTitles = (model['Connected Products'] || '').split(', ').filter(Boolean);
-            const connectedProducts = products.filter(p => connectedProductTitles.includes(p.title));
-  
-            // Build the HTML
-            panel.innerHTML += `
-              <img src="${imageUrl}" alt="${model['Look Name']}" class="look-image-full" />
-              <div class="product-list-col">
-                <h3 style="text-align:center; margin-bottom: 18px; font-size: 24px;">${model['Look Name']}</h3>
-                ${connectedProducts.map(p => `
-                  <div class="product-card" data-product-title="${p.title}">
-                    <img src="${p.thumb || 'https://via.placeholder.com/48'}" class="product-thumb" />
-                    <div class="product-info">
-                      <div class="product-title">${p.title}</div>
-                      <div class="product-price">€${p.price || 'N/A'}</div>
-                    </div>
-                    <div class="product-actions">
-                      <button data-action="add">Add</button>
-                      <button data-action="view">View</button>
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            `;
   
             // wire buttons
             panel.querySelectorAll('.product-card').forEach(card => {
