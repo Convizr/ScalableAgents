@@ -193,9 +193,10 @@ export const AIStylistExtension = {
     name: 'AIStylistExtension',
     type: 'response',
     match: ({ trace }) => {
-      console.log('[AIStylistExtension] match called with trace:', trace);
-      return trace.type === 'ext_ai_stylist' ||
+      const result = trace.type === 'ext_ai_stylist' ||
         (trace.payload && trace.payload.name === 'ext_ai_stylist');
+      console.log('[AIStylistExtension] match called with trace:', trace, '->', result);
+      return result;
     },
     render: ({ trace, element }) => {
       console.log('[AIStylistExtension] render called with trace:', trace);
