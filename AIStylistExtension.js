@@ -22,9 +22,11 @@ function updateMiniCartPosition() {
   if (isChatOpen) {
     miniCart.style.right = '425px';
     miniCart.style.top = '75px';
+    miniCart.style.bottom = '';
   } else {
     miniCart.style.right = '20px';
-    miniCart.style.top = '20px';
+    miniCart.style.top = '';
+    miniCart.style.bottom = '100px'; // Adjust as needed to be above the chat bubble
   }
 }
 
