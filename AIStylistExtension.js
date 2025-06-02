@@ -2,21 +2,6 @@
 const orderProductList = [];
 let isChatOpen = true;
 
-window.addEventListener('message', (event) => {
-  if (!event.data || typeof event.data !== 'object' || !event.data.type?.startsWith('voiceflow:')) return;
-  console.log('Voiceflow event:', event.data.type); // <-- Add this line
-  const miniCart = document.querySelector('.mini-cart');
-  if (event.data.type === 'voiceflow:open') {
-    isChatOpen = true;
-    if (miniCart) miniCart.style.display = '';
-    updateMiniCartPosition();
-  } else if (event.data.type === 'voiceflow:close') {
-    isChatOpen = false;
-    if (miniCart) miniCart.style.display = 'none';
-    updateMiniCartPosition();
-  }
-}, false);
-
 function updateMiniCartPosition() {
   const miniCart = document.querySelector('.mini-cart');
   if (!miniCart) return;
