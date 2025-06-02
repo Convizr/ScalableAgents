@@ -192,10 +192,14 @@ function renderMiniCart() {
 export const AIStylistExtension = {
     name: 'AIStylistExtension',
     type: 'response',
-    match: ({ trace }) =>
-      trace.type === 'ext_ai_stylist' ||
-      (trace.payload && trace.payload.name === 'ext_ai_stylist'),
+    match: ({ trace }) => {
+      console.log('[AIStylistExtension] match called with trace:', trace);
+      return trace.type === 'ext_ai_stylist' ||
+        (trace.payload && trace.payload.name === 'ext_ai_stylist');
+    },
     render: ({ trace, element }) => {
+      console.log('[AIStylistExtension] render called with trace:', trace);
+      console.log('[AIStylistExtension] render called with element:', element);
       console.log('Rendering AIStylistExtension');
   
       // 1. Parse incoming payload
