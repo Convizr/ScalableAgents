@@ -2,10 +2,9 @@
 const orderProductList = [];
 let miniCartTimeout = null;
 
-function updateCartContents(miniCart, show = true) {
+function updateCartContents(miniCart) {
   const totalItems = orderProductList.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = orderProductList.reduce((sum, i) => sum + i.price * i.quantity, 0);
-
   miniCart.innerHTML = `
     <div class="mini-cart-content">
       <h3>Your Cart (${totalItems} item${totalItems === 1 ? '' : 's'})</h3>
@@ -26,7 +25,6 @@ function updateCartContents(miniCart, show = true) {
       <button id="checkoutButton" class="checkout-btn">Continue to Checkout</button>
     </div>
   `;
-
   const checkoutButton = miniCart.querySelector('#checkoutButton');
   if (checkoutButton && !checkoutButton.dataset.bound) {
     checkoutButton.dataset.bound = 'true';
@@ -50,11 +48,6 @@ function updateCartContents(miniCart, show = true) {
       });
     });
   }
-  if (show) {
-    miniCart.style.display = '';
-  } else {
-    miniCart.style.display = 'none';
-  }
 }
 
 function updateCartIcon(cartIcon) {
@@ -65,7 +58,7 @@ function updateCartIcon(cartIcon) {
 
 function showMiniCartWithTimeout(miniCart, cartIcon) {
   if (miniCartTimeout) clearTimeout(miniCartTimeout);
-  updateCartContents(miniCart, true);
+  updateCartContents(miniCart);
   miniCart.style.display = '';
   cartIcon.style.display = 'none';
   miniCartTimeout = setTimeout(() => {
@@ -99,66 +92,182 @@ export const AIStylistExtension = {
   },
 
   render: ({ trace, element }) => {
-    // Remove any previous root
-    const oldRoot = element.querySelector('.ai-stylist-extension-root');
-    if (oldRoot) oldRoot.remove();
+    // Remove any previous mini-cart and cart icon
+    const oldMiniCart = document.querySelector('.mini-cart');
+    if (oldMiniCart) oldMiniCart.remove();
+    const oldCartIcon = document.querySelector('.cart-icon');
+    if (oldCartIcon) oldCartIcon.remove();
 
-    // 1) Create root container
-    const root = document.createElement('div');
-    root.className = 'ai-stylist-extension-root';
-    element.appendChild(root);
+    // 1) Build the grid as before
+    let payloadObj = {};
+    if (trace.payload) {
+      if (typeof trace.payload === 'string') {
+        try {
+          payloadObj = JSON.parse(trace.payload);
+        } catch (e) {
+          return;
+        }
+      } else {
+        payloadObj = trace.payload;
+      }
+    }
+    const recommendedStylingModels = Array.isArray(payloadObj.recommendedStylingModels) ? payloadObj.recommendedStylingModels : [];
+    const shopifyProductData = payloadObj.shopifyProductData || {};
 
-    // 2) Create grid and cart container
-    const gridAndCart = document.createElement('div');
-    gridAndCart.className = 'grid-and-cart';
-    root.appendChild(gridAndCart);
-
-    // 3) Build stylist grid
-    const grid = document.createElement('div');
-    grid.className = 'stylist-grid';
-    gridAndCart.appendChild(grid);
-
-    // 4) Mini-cart and cart icon
-    const miniCart = document.createElement('div');
-    miniCart.className = 'mini-cart';
-    gridAndCart.appendChild(miniCart);
-
-    const cartIcon = document.createElement('div');
-    cartIcon.className = 'cart-icon';
-    cartIcon.innerHTML = `
-      <span class="cart-svg"> <svg xmlns="http://www.w3.org/2000/svg" width="32" height="28"><g fill="#1a171b"><path d="M47.273 0h-6.544a.728.728 0 0 0-.712.58L38.63 7.219H.727a.727.727 0 0 0-.7.912l4.6 17.5c.006.021.019.037.026.059a.792.792 0 0 0 .042.094.747.747 0 0 0 .092.135.831.831 0 0 0 .065.068.626.626 0 0 0 .167.107.285.285 0 0 0 .045.029l13.106 5.145-5.754 2.184a4.382 4.382 0 1 0 .535 1.353l7.234-2.746 6.866 2.7A4.684 4.684 0 1 0 27.6 33.4l-5.39-2.113 13.613-5.164c.013-.006.021-.016.033-.021a.712.712 0 0 0 .188-.119.625.625 0 0 0 .063-.072.654.654 0 0 0 .095-.135.58.58 0 0 0 .04-.1.73.73 0 0 0 .033-.084l5.042-24.137h5.953a.728.728 0 0 0 0-1.455zM8.443 38.885a3.151 3.151 0 1 1 3.152-3.15 3.155 3.155 0 0 1-3.152 3.15zm23.1-6.3a3.151 3.151 0 1 1-3.143 3.149 3.155 3.155 0 0 1 3.148-3.152zM25.98 8.672l-.538 7.3H14.661l-.677-7.295zm-.645 8.75-.535 7.293h-9.328l-.672-7.293zM1.671 8.672h10.853l.677 7.3h-9.61zm2.3 8.75h9.362l.677 7.293H5.892zM20.2 30.5 9.175 26.17H31.6zm14.778-5.781h-8.722l.537-7.293h9.7zm1.822-8.752h-9.9l.537-7.295h10.889z"/><circle cx="8.443" cy="35.734" r=".728"/><circle cx="31.548" cy="35.734" r=".728"/></g></svg></span>
-      <span class="cart-count">0</span>
-    `;
-    gridAndCart.appendChild(cartIcon);
-    cartIcon.style.display = 'none';
-    cartIcon.style.alignItems = 'center';
-    cartIcon.style.cursor = 'pointer';
-    cartIcon.style.position = 'absolute';
-    cartIcon.style.right = '0';
-    cartIcon.style.bottom = '0';
-    cartIcon.style.background = 'white';
-    cartIcon.style.borderRadius = '50%';
-    cartIcon.style.boxShadow = '0 2px 8px rgba(0,0,0,0.10)';
-    cartIcon.style.padding = '6px 10px 6px 6px';
-    cartIcon.style.zIndex = '1001';
-    cartIcon.querySelector('.cart-count').style.marginLeft = '4px';
-    cartIcon.querySelector('.cart-count').style.fontWeight = 'bold';
-    cartIcon.querySelector('.cart-count').style.color = '#447f76';
-
-    // Cart icon click shows mini-cart and restarts timer
-    cartIcon.addEventListener('click', () => {
-      showMiniCartWithTimeout(miniCart, cartIcon);
-    });
-
-    // Inject CSS (if not already present)
-    if (!document.getElementById('mini-cart-styles')) {
-      const style = document.createElement('style');
-      style.id = 'mini-cart-styles';
-      style.textContent = `
+    // Main container
+    const container = document.createElement('div');
+    container.innerHTML = `
+      <style>
+        .stylist-grid {
+          display: grid;
+          gap: 16px;
+          grid-template-columns: 1fr;
+          margin: 20px 0;
+        }
+        .stylist-tile {
+          border-radius: 5px;
+          overflow: hidden;
+          cursor: pointer;
+          transition: box-shadow .2s;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 8px;
+        }
+        .stylist-tile img {
+          width: 120px;
+          height: 160px;
+          object-fit: cover;
+          border-radius: 8px;
+          margin-bottom: 8px;
+        }
+        .stylist-tile.active {
+          box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+          z-index: 2;
+        }
+        .product-panel.vertical-panel {
+          border-radius: 12px;
+          padding: 20px 10px;
+          margin-top: 12px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .look-image-large {
+          width: 70%;
+          max-width: 220px;
+          border-radius: 10px;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+          margin-bottom: 18px;
+        }
+        .product-list-col {
+          width: 100%;
+        }
+        .product-list-col h3 {
+          text-align: center;
+          margin-bottom: 10px;
+          font-size: 22px;
+        }
+        .keywords {
+          font-size: 12px;
+          color: #666;
+          margin-bottom: 18px;
+          text-align: center;
+        }
+        .keywords span {
+          display: inline-block;
+          background: #f0f0f0;
+          padding: 2px 8px;
+          border-radius: 12px;
+          margin: 2px 4px 2px 0;
+        }
+        .product-card {
+          display: flex;
+          align-items: center;
+          background: #fff;
+          border-radius: 8px;
+          margin-bottom: 14px;
+          padding: 10px 12px;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+          gap: 12px;
+        }
+        .product-thumb {
+          width: 48px;
+          height: 48px;
+          object-fit: cover;
+          border-radius: 6px;
+          margin-right: 10px;
+        }
+        .product-info {
+          flex: 1;
+        }
+        .product-title {
+          font-weight: 600;
+          font-size: 15px;
+          margin-bottom: 2px;
+        }
+        .product-price {
+          color: #447f76;
+          font-size: 14px;
+        }
+        .product-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .product-actions button {
+          background: #447f76;
+          color: #fff;
+          border: none;
+          border-radius: 4px;
+          padding: 5px 10px;
+          cursor: pointer;
+          font-size: 12px;
+          margin-bottom: 2px;
+          transition: background-color 0.2s;
+        }
+        .product-actions button:hover {
+          background: #35635c;
+        }
+        .product-panel.full-width-panel {
+          background: #e9e9e9;
+          border-radius: 12px;
+          padding: 20px 10px;
+          margin-top: 12px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .look-image-full {
+          width: 100%;
+          max-width: 340px;
+          border-radius: 10px;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+          margin-bottom: 18px;
+          display: block;
+        }
+        .back-btn {
+          background: #fff;
+          color: #447f76;
+          border: 1px solid #447f76;
+          border-radius: 6px;
+          padding: 6px 18px;
+          font-size: 15px;
+          font-weight: 500;
+          cursor: pointer;
+          margin-bottom: 16px;
+          transition: background 0.2s, color 0.2s;
+        }
+        .back-btn:hover {
+          background: #447f76;
+          color: #fff;
+        }
         .mini-cart {
-          position: absolute;
-          right: 0;
-          bottom: 0;
+          position: fixed;
+          right: 20px;
+          bottom: 75px;
           background: white;
           border-radius: 12px;
           box-shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -181,29 +290,29 @@ export const AIStylistExtension = {
           transition: background-color 0.2s;
         }
         .checkout-btn:hover { background: #35635c; }
-        .cart-icon { transition: box-shadow 0.2s; }
-        .cart-icon:hover { box-shadow: 0 4px 16px rgba(68,127,118,0.15); }
-      `;
-      document.head.appendChild(style);
-    }
-
-    // Parse payload
-    let payloadObj = {};
-    if (trace.payload) {
-      if (typeof trace.payload === 'string') {
-        try {
-          payloadObj = JSON.parse(trace.payload);
-        } catch (e) {
-          return;
+        .cart-icon {
+          position: fixed;
+          right: 20px;
+          bottom: 75px;
+          background: white;
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+          padding: 6px 10px 6px 6px;
+          z-index: 1001;
+          align-items: center;
+          cursor: pointer;
+          display: flex;
         }
-      } else {
-        payloadObj = trace.payload;
-      }
-    }
-    const recommendedStylingModels = Array.isArray(payloadObj.recommendedStylingModels) ? payloadObj.recommendedStylingModels : [];
-    const shopifyProductData = payloadObj.shopifyProductData || {};
-
-    // Populate the grid with tiles and panels
+        .cart-count {
+          margin-left: 4px;
+          font-weight: bold;
+          color: #447f76;
+        }
+      </style>
+      <div class="stylist-grid"></div>
+    `;
+    element.appendChild(container);
+    const grid = container.querySelector('.stylist-grid');
     let activeTile = null;
     recommendedStylingModels.forEach((model) => {
       const tile = document.createElement('div');
@@ -221,7 +330,7 @@ export const AIStylistExtension = {
         activeTile = isReopening ? tile : null;
         if (isReopening) {
           grid.style.display = 'none';
-          const prevFullPanel = root.querySelector('.full-width-panel');
+          const prevFullPanel = container.querySelector('.full-width-panel');
           if (prevFullPanel) prevFullPanel.remove();
           const panel = document.createElement('div');
           panel.classList.add('product-panel', 'full-width-panel');
@@ -280,8 +389,8 @@ export const AIStylistExtension = {
                     btn.dataset.title,
                     parseFloat(btn.dataset.price),
                     btn.dataset.image,
-                    miniCart,
-                    cartIcon
+                    document.querySelector('.mini-cart'),
+                    document.querySelector('.cart-icon')
                   );
                   return;
                 }
@@ -295,14 +404,17 @@ export const AIStylistExtension = {
               });
             });
           });
-          root.appendChild(panel);
+          container.appendChild(panel);
         }
       });
       grid.appendChild(tile);
     });
-
-    // 5) If we already have items in orderProductList, fill the mini-cart immediately.
-    updateCartContents(miniCart, true);
+    // Add mini-cart and cart icon to the DOM (fixed position)
+    document.body.appendChild(container);
+    document.body.appendChild(cartIcon);
+    document.body.appendChild(miniCart);
+    // Initial state
+    updateCartContents(miniCart);
     updateCartIcon(cartIcon);
     if (orderProductList.length > 0) {
       showMiniCartWithTimeout(miniCart, cartIcon);
@@ -310,13 +422,19 @@ export const AIStylistExtension = {
       miniCart.style.display = 'none';
       cartIcon.style.display = 'none';
     }
+    // Cart icon click shows mini-cart and restarts timer
+    cartIcon.addEventListener('click', () => {
+      showMiniCartWithTimeout(miniCart, cartIcon);
+    });
   },
 
   unmount: () => {
-    // Remove the entire root container, taking the mini-cart with it.
-    const root = document.querySelector('.ai-stylist-extension-root');
-    if (root) root.remove();
-    // Clear in-memory state if you want a fresh cart next time
+    const miniCart = document.querySelector('.mini-cart');
+    if (miniCart) miniCart.remove();
+    const cartIcon = document.querySelector('.cart-icon');
+    if (cartIcon) cartIcon.remove();
+    const containers = document.querySelectorAll('.ai-stylist-extension-root');
+    containers.forEach(root => root.remove());
     orderProductList.length = 0;
     if (miniCartTimeout) clearTimeout(miniCartTimeout);
   }
