@@ -60,7 +60,7 @@ function renderMiniCart() {
   style.textContent = `
     .mini-cart {
       position: fixed;
-      bottom: 20px;
+      top: 20px;
       right: 20px;
       background: white;
       border-radius: 12px;
@@ -299,7 +299,6 @@ export const AIStylistExtension = {
             background: #35635c;
           }
           .product-panel.full-width-panel {
-            background: #e9e9e9;
             border-radius: 12px;
             padding: 20px 10px;
             margin-top: 12px;
