@@ -17,13 +17,13 @@ function updateMiniCartPosition() {
   const miniCart = document.querySelector('.mini-cart');
   if (!miniCart) return;
   const isMobile = window.innerWidth <= 600;
+  miniCart.style.top = '';
+  miniCart.style.right = '';
   if (isChatOpen) {
-    miniCart.style.right = isMobile ? '20px' : '420px';
-    miniCart.style.top = '';
-    miniCart.style.bottom = '20px';
+    miniCart.style.right = isMobile ? '20px' : '425px';
+    miniCart.style.bottom = '75px';
   } else {
     miniCart.style.right = '20px';
-    miniCart.style.top = '';
     miniCart.style.bottom = '100px';
   }
 }
