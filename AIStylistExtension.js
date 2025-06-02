@@ -73,7 +73,6 @@ function renderMiniCart() {
   style.textContent = `
     .mini-cart {
       position: fixed;
-      top: 75px;
       right: 425px;
       background: white;
       border-radius: 12px;
