@@ -1,8 +1,32 @@
-// --- In-memory cart state ---
+// --- Helper variables and functions ---
 const orderProductList = [];
 let miniCartTimeout = null;
+// isChatOpen will now be a global window.isChatOpen, set by the main website script
+// Initialize it here as a fallback, but the main page should control it.
+if (typeof window.isChatOpen === 'undefined') {
+  window.isChatOpen = true;
+}
 
-function updateCartContents(miniCart, cartIcon) {
+function updateMiniCartPosition() {
+  const miniCart = document.querySelector('.mini-cart');
+  if (!miniCart) return;
+  const isMobile = window.innerWidth <= 600;
+  miniCart.style.top = ''; // Clear top, using bottom for positioning
+  miniCart.style.right = ''; // Clear right, will be set based on state
+
+  // Use window.isChatOpen now
+  if (window.isChatOpen) {
+    miniCart.style.right = isMobile ? '20px' : '425px';
+    miniCart.style.bottom = '75px';
+  } else {
+    // This state is for when chat is minimized, cart should be hidden by main page listener,
+    // but if shown, position it above the bubble.
+    miniCart.style.right = '20px';
+    miniCart.style.bottom = '100px';
+  }
+}
+
+function updateCartContents(miniCart, show = false) {
   const totalItems = orderProductList.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = orderProductList.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
@@ -50,54 +74,52 @@ function updateCartContents(miniCart, cartIcon) {
       });
     });
   }
-  // Update cart icon badge
-  if (cartIcon) {
-    cartIcon.querySelector('.cart-badge').textContent = totalItems;
+
+  // Show mini-cart for 5 seconds if requested
+  if (show) {
+    miniCart.style.display = '';
+    if (miniCartTimeout) clearTimeout(miniCartTimeout);
+    miniCartTimeout = setTimeout(() => {
+      miniCart.style.display = 'none';
+    }, 5000);
   }
 }
 
-function showMiniCart(miniCart, cartIcon) {
-  miniCart.style.display = '';
-  if (cartIcon) cartIcon.style.display = 'none';
-  if (miniCartTimeout) clearTimeout(miniCartTimeout);
-  miniCartTimeout = setTimeout(() => {
-    hideMiniCart(miniCart, cartIcon);
-  }, 5000);
+function updateCartIcon(cartIcon) {
+  const totalItems = orderProductList.reduce((sum, i) => sum + i.quantity, 0);
+  cartIcon.querySelector('.cart-count').textContent = totalItems;
+  cartIcon.style.display = totalItems > 0 ? 'flex' : 'none';
 }
 
-function hideMiniCart(miniCart, cartIcon) {
-  miniCart.style.display = 'none';
-  if (cartIcon) cartIcon.style.display = '';
-}
-
-function updateCartIconBadge(cartIcon, count) {
-  cartIcon.querySelector('.cart-badge').textContent = count;
-}
-
-function addItemToOrderList(variantGID, title, price, imageUrl, miniCart, cartIcon) {
+function addItemToOrderList(variantGID, title, price, imageUrl, root) {
   const existing = orderProductList.find(i => i.variantGID === variantGID);
   if (existing) {
     existing.quantity += 1;
   } else {
     orderProductList.push({ variantGID, quantity: 1, title, price, imageUrl });
   }
-  updateCartContents(miniCart, cartIcon);
-  showMiniCart(miniCart, cartIcon);
+  // Update mini-cart and icon in the extension DOM
+  const miniCart = root.querySelector('.mini-cart');
+  const cartIcon = root.querySelector('.cart-icon-btn');
+  if (miniCart) updateCartContents(miniCart, true);
+  if (cartIcon) updateCartIcon(cartIcon);
 }
+
+window.addItemToOrderList = addItemToOrderList;
 
 // --- The extension object ---
 export const AIStylistExtension = {
   name: 'AIStylistExtension',
   type: 'response',
-
   match: ({ trace }) => {
-    return (
-      trace.type === 'ext_ai_stylist' ||
-      (trace.payload && trace.payload.name === 'ext_ai_stylist')
-    );
+    return trace.type === 'ext_ai_stylist' ||
+      (trace.payload && trace.payload.name === 'ext_ai_stylist');
   },
-
   render: ({ trace, element }) => {
+    // Remove any previous root
+    const oldRoot = element.querySelector('.ai-stylist-extension-root');
+    if (oldRoot) oldRoot.remove();
+
     // 1) Create one root container inside the provided element
     const root = document.createElement('div');
     root.className = 'ai-stylist-extension-root';
@@ -113,61 +135,66 @@ export const AIStylistExtension = {
     grid.className = 'stylist-grid';
     gridAndCart.appendChild(grid);
 
-    // Inject grid CSS (if not already present)
-    if (!document.getElementById('stylist-grid-styles')) {
-      const style = document.createElement('style');
-      style.id = 'stylist-grid-styles';
-      style.textContent = `
-        .stylist-grid {
-          display: grid;
-          gap: 16px;
-          grid-template-columns: repeat(2, 1fr);
-          margin: 20px 0;
+    // Parse payload
+    let payloadObj = {};
+    if (trace.payload) {
+      if (typeof trace.payload === 'string') {
+        try {
+          payloadObj = JSON.parse(trace.payload);
+        } catch (e) {
+          return;
         }
-        .stylist-tile {
-          border-radius: 5px;
-          overflow: hidden;
-          cursor: pointer;
-          transition: box-shadow .2s;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 8px;
-        }
-        .stylist-tile img {
-          width: 120px;
-          height: 160px;
-          object-fit: cover;
-          border-radius: 8px;
-          margin-bottom: 8px;
-        }
-        .stylist-tile.active {
-          box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-          z-index: 2;
-        }
-      `;
-      document.head.appendChild(style);
+      } else {
+        payloadObj = trace.payload;
+      }
     }
+    const recommendedStylingModels = Array.isArray(payloadObj.recommendedStylingModels) ? payloadObj.recommendedStylingModels : [];
+    const shopifyProductData = payloadObj.shopifyProductData || {};
 
     // 4) Create the mini-cart container as a sibling of "grid" inside gridAndCart
     const miniCart = document.createElement('div');
     miniCart.className = 'mini-cart';
+    miniCart.style.display = 'none';
     gridAndCart.appendChild(miniCart);
 
-    // 5) Create the cart icon (hidden by default)
-    const cartIcon = document.createElement('div');
-    cartIcon.className = 'cart-icon';
-    cartIcon.innerHTML = `
-      <span class="cart-badge">${orderProductList.length}</span>
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="28"><g fill="#1a171b"><path d="M47.273 0h-6.544a.728.728 0 0 0-.712.58L38.63 7.219H.727a.727.727 0 0 0-.7.912l4.6 17.5c.006.021.019.037.026.059a.792.792 0 0 0 .042.094.747.747 0 0 0 .092.135.831.831 0 0 0 .065.068.626.626 0 0 0 .167.107.285.285 0 0 0 .045.029l13.106 5.145-5.754 2.184a4.382 4.382 0 1 0 .535 1.353l7.234-2.746 6.866 2.7A4.684 4.684 0 1 0 27.6 33.4l-5.39-2.113 13.613-5.164c.013-.006.021-.016.033-.021a.712.712 0 0 0 .188-.119.625.625 0 0 0 .063-.072.654.654 0 0 0 .095-.135.58.58 0 0 0 .04-.1.73.73 0 0 0 .033-.084l5.042-24.137h5.953a.728.728 0 0 0 0-1.455zM8.443 38.885a3.151 3.151 0 1 1 3.152-3.15 3.155 3.155 0 0 1-3.152 3.15zm23.1-6.3a3.151 3.151 0 1 1-3.143 3.149 3.155 3.155 0 0 1 3.148-3.152zM25.98 8.672l-.538 7.3H14.661l-.677-7.295zm-.645 8.75-.535 7.293h-9.328l-.672-7.293zM1.671 8.672h10.853l.677 7.3h-9.61zm2.3 8.75h9.362l.677 7.293H5.892zM20.2 30.5 9.175 26.17H31.6zm14.778-5.781h-8.722l.537-7.293h9.7zm1.822-8.752h-9.9l.537-7.295h10.889z"/><circle cx="8.443" cy="35.734" r=".728"/><circle cx="31.548" cy="35.734" r=".728"/></g></svg>
-    `;
+    // 5) Create the cart icon button (hidden if cart is empty)
+    const cartIcon = document.createElement('button');
+    cartIcon.className = 'cart-icon-btn';
     cartIcon.style.display = 'none';
+    cartIcon.innerHTML = `
+      <span class="cart-svg">${`
+        <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"28\"><g fill=\"#1a171b\"><path d=\"M31.5 0h-4.3a.48.48 0 0 0-.47.38l-.27 4.3H.48a.48.48 0 0 0-.46.6l3 11.1c.004.014.012.024.017.038a.52.52 0 0 0 .027.06.48.48 0 0 0 .06.086.54.54 0 0 0 .042.043.41.41 0 0 0 .11.067.19.19 0 0 0 .03.018l8.3 3.26-3.64 1.38a2.77 2.77 0 1 0 .34.86l4.58-1.74 4.35 1.71a2.96 2.96 0 1 0 .34-.86l-3.42-1.34 8.63-3.28a.04.04 0 0 0 .02-.013.47.47 0 0 0 .12-.075.41.41 0 0 0 .04-.045.43.43 0 0 0 .06-.086.38.38 0 0 0 .025-.062.48.48 0 0 0 .02-.053l3.2-15.4h3.78a.48.48 0 0 0 0-.96zM5.63 26.1a1.99 1.99 0 1 1 1.99-1.99 1.99 1.99 0 0 1-1.99 1.99zm14.6-3.98a1.99 1.99 0 1 1-1.99 1.99 1.99 1.99 0 0 1 1.99-1.99zM17.1 5.6l-.34 4.6H9.36l-.43-4.6zm-.41 5.52-.34 4.6H9.98l-.43-4.6zM1.06 5.6h6.97l.43 4.6H2.1zm1.48 5.52h6.99l.43 4.6H3.47zM13.1 19.4l-7.01-2.75h14.01zm9.36-3.58h-5.6l.34-4.6h6.23zm1.17-5.52h-6.32l.34-4.6h6.96z\"/><circle cx=\"5.63\" cy=\"24.11\" r=\".48\"/><circle cx=\"20.23\" cy=\"24.11\" r=\".48\"/></g></svg>
+      `}</span>
+      <span class="cart-count">0</span>
+    `;
+    cartIcon.style.position = 'absolute';
+    cartIcon.style.right = '0';
+    cartIcon.style.top = '0';
+    cartIcon.style.background = 'none';
+    cartIcon.style.border = 'none';
+    cartIcon.style.cursor = 'pointer';
+    cartIcon.style.alignItems = 'center';
+    cartIcon.style.justifyContent = 'center';
+    cartIcon.style.display = 'none';
+    cartIcon.style.zIndex = '1001';
+    cartIcon.style.padding = '0 8px';
+    cartIcon.style.height = '40px';
+    cartIcon.style.fontSize = '18px';
+    cartIcon.style.lineHeight = '40px';
+    cartIcon.style.minWidth = '40px';
+    cartIcon.querySelector('.cart-count').style.marginLeft = '4px';
     gridAndCart.appendChild(cartIcon);
+
+    // Cart icon click: show mini-cart for 5 seconds
     cartIcon.addEventListener('click', () => {
-      showMiniCart(miniCart, cartIcon);
+      miniCart.style.display = '';
+      if (miniCartTimeout) clearTimeout(miniCartTimeout);
+      miniCartTimeout = setTimeout(() => {
+        miniCart.style.display = 'none';
+      }, 5000);
     });
 
-    // Inject mini-cart and cart icon CSS (if not already present)
+    // Inject CSS (if not already present)
     if (!document.getElementById('mini-cart-styles')) {
       const style = document.createElement('style');
       style.id = 'mini-cart-styles';
@@ -198,45 +225,38 @@ export const AIStylistExtension = {
           transition: background-color 0.2s;
         }
         .checkout-btn:hover { background: #35635c; }
-        .cart-icon {
-          position: absolute;
-          right: 60px;
-          top: 16px;
+        .cart-icon-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: none;
+          border: none;
           cursor: pointer;
-          z-index: 1100;
-        }
-        .cart-badge {
           position: absolute;
-          top: -8px;
-          right: -8px;
+          right: 0;
+          top: 0;
+          z-index: 1001;
+        }
+        .cart-svg {
+          display: flex;
+          align-items: center;
+        }
+        .cart-count {
           background: #447f76;
           color: #fff;
           border-radius: 50%;
           padding: 2px 7px;
-          font-size: 12px;
-          font-weight: bold;
+          font-size: 13px;
+          margin-left: 4px;
+          min-width: 22px;
+          text-align: center;
         }
       `;
       document.head.appendChild(style);
     }
 
-    // 6) Populate the grid with tiles and panels
+    // 6) Build the grid and wire up add buttons
     let activeTile = null;
-    // Parse payload for looks
-    let payloadObj = {};
-    if (trace.payload) {
-      if (typeof trace.payload === 'string') {
-        try {
-          payloadObj = JSON.parse(trace.payload);
-        } catch (e) {
-          return;
-        }
-      } else {
-        payloadObj = trace.payload;
-      }
-    }
-    const recommendedStylingModels = Array.isArray(payloadObj.recommendedStylingModels) ? payloadObj.recommendedStylingModels : [];
-    const shopifyProductData = payloadObj.shopifyProductData || {};
     recommendedStylingModels.forEach((model) => {
       const tile = document.createElement('div');
       tile.classList.add('stylist-tile');
@@ -259,6 +279,12 @@ export const AIStylistExtension = {
           panel.classList.add('product-panel', 'full-width-panel');
           let panelHTML = `
             <button class="back-btn" style="margin-bottom: 16px;">← Back</button>
+            <button class="cart-icon-btn" style="margin-left: 8px; position: relative;">
+              <span class="cart-svg">${`
+                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"28\"><g fill=\"#1a171b\"><path d=\"M31.5 0h-4.3a.48.48 0 0 0-.47.38l-.27 4.3H.48a.48.48 0 0 0-.46.6l3 11.1c.004.014.012.024.017.038a.52.52 0 0 0 .027.06.48.48 0 0 0 .06.086.54.54 0 0 0 .042.043.41.41 0 0 0 .11.067.19.19 0 0 0 .03.018l8.3 3.26-3.64 1.38a2.77 2.77 0 1 0 .34.86l4.58-1.74 4.35 1.71a2.96 2.96 0 1 0 .34-.86l-3.42-1.34 8.63-3.28a.04.04 0 0 0 .02-.013.47.47 0 0 0 .12-.075.41.41 0 0 0 .04-.045.43.43 0 0 0 .06-.086.38.38 0 0 0 .025-.062.48.48 0 0 0 .02-.053l3.2-15.4h3.78a.48.48 0 0 0 0-.96zM5.63 26.1a1.99 1.99 0 1 1 1.99-1.99 1.99 1.99 0 0 1-1.99 1.99zm14.6-3.98a1.99 1.99 0 1 1-1.99 1.99 1.99 1.99 0 0 1 1.99-1.99zM17.1 5.6l-.34 4.6H9.36l-.43-4.6zm-.41 5.52-.34 4.6H9.98l-.43-4.6zM1.06 5.6h6.97l.43 4.6H2.1zm1.48 5.52h6.99l.43 4.6H3.47zM13.1 19.4l-7.01-2.75h14.01zm9.36-3.58h-5.6l.34-4.6h6.23zm1.17-5.52h-6.32l.34-4.6h6.96z\"/><circle cx=\"5.63\" cy=\"24.11\" r=\".48\"/><circle cx=\"20.23\" cy=\"24.11\" r=\".48\"/></g></svg>
+              `}</span>
+              <span class="cart-count">${orderProductList.reduce((sum, i) => sum + i.quantity, 0)}</span>
+            </button>
             <img src="${imageUrl}" alt="${model['Look Name']}" class="look-image-full" />
             <div class="product-list-col">
               <h3 style="text-align:center; margin-bottom: 18px; font-size: 24px;">${model['Look Name']}</h3>
@@ -286,6 +312,7 @@ export const AIStylistExtension = {
           }).join('');
           panelHTML += '</div>';
           panel.innerHTML = panelHTML;
+          // Back button logic
           const backBtn = panel.querySelector('.back-btn');
           backBtn.addEventListener('click', () => {
             panel.remove();
@@ -293,6 +320,18 @@ export const AIStylistExtension = {
             if (activeTile) activeTile.classList.remove('active');
             activeTile = null;
           });
+          // Cart icon in panel
+          const panelCartIcon = panel.querySelector('.cart-icon-btn');
+          if (panelCartIcon) {
+            panelCartIcon.addEventListener('click', () => {
+              miniCart.style.display = '';
+              if (miniCartTimeout) clearTimeout(miniCartTimeout);
+              miniCartTimeout = setTimeout(() => {
+                miniCart.style.display = 'none';
+              }, 5000);
+            });
+            updateCartIcon(cartIcon);
+          }
           panel.querySelectorAll('.product-card').forEach(card => {
             const productTitle = card.dataset.productTitle;
             card.querySelectorAll('button').forEach(btn => {
@@ -307,14 +346,21 @@ export const AIStylistExtension = {
                     return;
                   }
                 } else if (action === 'add') {
-                  addItemToOrderList(
+                  window.addItemToOrderList(
                     btn.dataset.variantGid,
                     btn.dataset.title,
                     parseFloat(btn.dataset.price),
                     btn.dataset.image,
-                    miniCart,
-                    cartIcon
+                    root
                   );
+                  // Show mini-cart for 5 seconds
+                  miniCart.style.display = '';
+                  if (miniCartTimeout) clearTimeout(miniCartTimeout);
+                  miniCartTimeout = setTimeout(() => {
+                    miniCart.style.display = 'none';
+                  }, 5000);
+                  updateCartIcon(cartIcon);
+                  if (panelCartIcon) updateCartIcon(panelCartIcon);
                   return;
                 }
                 window.voiceflow.chat.interact({
@@ -333,20 +379,15 @@ export const AIStylistExtension = {
       grid.appendChild(tile);
     });
 
-    // 7) Initial render of mini-cart and cart icon
-    updateCartContents(miniCart, cartIcon);
-    if (orderProductList.length > 0) {
-      showMiniCart(miniCart, cartIcon);
-    } else {
-      hideMiniCart(miniCart, cartIcon);
-    }
+    // 7) Fill the mini-cart and cart icon immediately
+    updateCartContents(miniCart);
+    updateCartIcon(cartIcon);
   },
 
   unmount: () => {
     // Remove the entire root container, taking the mini-cart with it.
     const root = document.querySelector('.ai-stylist-extension-root');
     if (root) root.remove();
-    // Clear in-memory state if you want a fresh cart next time
     orderProductList.length = 0;
     if (miniCartTimeout) clearTimeout(miniCartTimeout);
   }
