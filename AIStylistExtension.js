@@ -1,6 +1,33 @@
 // Global array to hold everything the user "adds"
 const orderProductList = [];
 
+// Track Voiceflow chat open/close state and update mini-cart position
+let isChatOpen = true; // Assume open when cart is first rendered
+
+window.addEventListener('message', (event) => {
+  if (!event.data || typeof event.data !== 'object' || !event.data.type?.startsWith('voiceflow:')) return;
+
+  if (event.data.type === 'voiceflow:open') {
+    isChatOpen = true;
+    updateMiniCartPosition();
+  } else if (event.data.type === 'voiceflow:close') {
+    isChatOpen = false;
+    updateMiniCartPosition();
+  }
+}, false);
+
+function updateMiniCartPosition() {
+  const miniCart = document.querySelector('.mini-cart');
+  if (!miniCart) return;
+  if (isChatOpen) {
+    miniCart.style.right = '425px';
+    miniCart.style.top = '75px';
+  } else {
+    miniCart.style.right = '20px';
+    miniCart.style.top = '20px';
+  }
+}
+
 // Function to add items to the order list
 function addItemToOrderList(variantGID, title, price, imageUrl) {
   // 1. See if it's already in the array
@@ -60,8 +87,8 @@ function renderMiniCart() {
   style.textContent = `
     .mini-cart {
       position: fixed;
-      top: 20px;
-      right: 20px;
+      top: 75px;
+      right: 425px;
       background: white;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -155,6 +182,9 @@ function renderMiniCart() {
   if (!document.querySelector('.mini-cart')) {
     document.body.appendChild(miniCart);
   }
+
+  // Update mini-cart position based on chat state
+  updateMiniCartPosition();
 }
 
 export const AIStylistExtension = {
