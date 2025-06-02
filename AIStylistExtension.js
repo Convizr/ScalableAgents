@@ -1,59 +1,113 @@
-// --- Helper variables and functions ---
-const orderProductList = [];
-let isChatOpen = true;
+// Tracks whether the Voiceflow chat is currently open or closed.
+// We presume "closed" by default; as soon as the user opens the widget, we'll flip to true.
+let isChatOpen = false;
 
+// Our in-memory "cart" (only { variantGID, quantity, title, price, imageUrl } objects).
+const orderProductList = [];
+
+/**
+ * Called whenever the Voiceflow chat becomes visible.
+ * We set isChatOpen = true, then reposition (or show) the mini-cart if it exists.
+ */
+function handleChatOpen() {
+  isChatOpen = true;
+  updateMiniCartPosition();
+}
+
+/**
+ * Called whenever the Voiceflow chat is minimized or closed.
+ * We set isChatOpen = false, then immediately hide the mini-cart (if rendered).
+ */
+function handleChatClose() {
+  isChatOpen = false;
+  const miniCart = document.querySelector('.mini-cart');
+  if (miniCart) {
+    miniCart.style.display = 'none';
+  }
+}
+
+/**
+ * Position (or hide) the mini-cart based on isChatOpen and window width.
+ * If isChatOpen === false, hide it. Otherwise show & position it beside the widget.
+ */
 function updateMiniCartPosition() {
   const miniCart = document.querySelector('.mini-cart');
-  if (!miniCart) return; // If no mini‐cart in DOM, nothing to do.
+  if (!miniCart) return;
 
-  // If the widget is minimized/closed, hide the mini-cart
+  // If the chat is closed, hide the mini-cart and return
   if (!isChatOpen) {
     miniCart.style.display = 'none';
     return;
   }
 
-  // If the widget is open, show + position the mini-cart
-  miniCart.style.display = ''; // revert to default CSS/display value
+  // Otherwise, show + position next to the open chat widget
+  miniCart.style.display = '';
   const isMobile = window.innerWidth <= 600;
 
-  // Reset any previously set positioning
-  miniCart.style.top = '';
-  miniCart.style.right = '';
+  // Clear any previous positioning
+  miniCart.style.top    = '';
+  miniCart.style.right  = '';
   miniCart.style.bottom = '';
 
-  if (isChatOpen) {
-    // Voic eflow widget is open
-    miniCart.style.right = isMobile ? '20px' : '425px';
-    miniCart.style.bottom = '75px';
-  } else {
-    // (This branch should never be hit, because we returned earlier if !isChatOpen)
-    miniCart.style.right = '20px';
-    miniCart.style.bottom = '100px';
-  }
+  // On desktop, place 425px from right, 75px from bottom
+  // On mobile, place 20px from right, 75px from bottom
+  miniCart.style.right  = isMobile ? '20px'  : '425px';
+  miniCart.style.bottom = '75px';
 }
 
-function addItemToOrderList(variantGID, title, price, imageUrl) {
-  const existing = orderProductList.find(item => item.variantGID === variantGID);
-  if (existing) {
-    existing.quantity += 1;
-  } else {
-    orderProductList.push({ variantGID, quantity: 1, title, price, imageUrl });
-  }
-  renderMiniCart();
-}
-
+/**
+ * Render (or re-render) the mini-cart HTML based on orderProductList.
+ * This function:
+ * 1. Creates the .mini-cart container if it doesn't exist.
+ * 2. Populates its innerHTML with all items + totals + a "Continue to Checkout" button.
+ * 3. Attaches a click handler on "Continue to Checkout" that fires a Voiceflow event.
+ * 4. Calls updateMiniCartPosition() to show/hide appropriately.
+ */
 function renderMiniCart() {
-  // 1. Find or create the .mini-cart DIV
   let miniCart = document.querySelector('.mini-cart');
   if (!miniCart) {
     miniCart = document.createElement('div');
     miniCart.className = 'mini-cart';
     document.body.appendChild(miniCart);
+
+    // Inject CSS for mini-cart once
+    if (!document.getElementById('mini-cart-styles')) {
+      const style = document.createElement('style');
+      style.id = 'mini-cart-styles';
+      style.textContent = `
+        .mini-cart {
+          position: fixed;
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+          padding: 16px;
+          max-width: 300px;
+          z-index: 1000;
+        }
+        .mini-cart-content { display: flex; flex-direction: column; gap: 12px; }
+        .mini-cart h3 { margin: 0; font-size: 16px; color: #333; }
+        .mini-cart-items { max-height: 200px; overflow-y: auto; }
+        .mini-cart-item { display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .mini-cart-item img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
+        .item-details { flex: 1; }
+        .item-title { font-size: 14px; color: #333; }
+        .item-price { font-size: 12px; color: #666; }
+        .mini-cart-total { text-align: right; padding-top: 8px; border-top: 1px solid #eee; }
+        .checkout-btn {
+          background: #447f76; color: white; border: none; padding: 10px;
+          border-radius: 6px; cursor: pointer; font-weight: 500;
+          transition: background-color 0.2s;
+        }
+        .checkout-btn:hover { background: #35635c; }
+      `;
+      document.head.appendChild(style);
+    }
   }
 
-  // 2. Populate its innerHTML
+  // Build the innerHTML from orderProductList
   const totalItems = orderProductList.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = orderProductList.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
   miniCart.innerHTML = `
     <div class="mini-cart-content">
       <h3>Your Cart (${totalItems} items)</h3>
@@ -75,49 +129,16 @@ function renderMiniCart() {
     </div>
   `;
 
-  // Add back the style injection for the mini-cart
-  if (!document.getElementById('mini-cart-styles')) {
-    const style = document.createElement('style');
-    style.id = 'mini-cart-styles';
-    style.textContent = `
-      .mini-cart {
-        position: fixed;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        padding: 16px;
-        max-width: 300px;
-        z-index: 1000;
-      }
-      .mini-cart-content { display: flex; flex-direction: column; gap: 12px; }
-      .mini-cart h3 { margin: 0; font-size: 16px; color: #333; }
-      .mini-cart-items { max-height: 200px; overflow-y: auto; }
-      .mini-cart-item { display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid #eee; }
-      .mini-cart-item img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
-      .item-details { flex: 1; }
-      .item-title { font-size: 14px; color: #333; }
-      .item-price { font-size: 12px; color: #666; }
-      .mini-cart-total { text-align: right; padding-top: 8px; border-top: 1px solid #eee; }
-      .checkout-btn {
-        background: #447f76; color: white; border: none; padding: 10px;
-        border-radius: 6px; cursor: pointer; font-weight: 500;
-        transition: background-color 0.2s;
-      }
-      .checkout-btn:hover { background: #35635c; }
-    `;
-    document.head.appendChild(style);
-  }
-
-  // 3. Once the DOM is updated, call updateMiniCartPosition() to sync visibility/position
-  updateMiniCartPosition();
-
-  // 4. Bind the checkout button listener (only once)
+  // Attach the "Continue to Checkout" listener only once
   const checkoutButton = miniCart.querySelector('#checkoutButton');
   if (checkoutButton && !checkoutButton.dataset.bound) {
     checkoutButton.dataset.bound = 'true';
     checkoutButton.addEventListener('click', () => {
       const payloadData = {
-        orderList: orderProductList.map(i => ({ variantGID: i.variantGID, quantity: i.quantity }))
+        orderList: orderProductList.map(i => ({
+          variantGID: i.variantGID,
+          quantity:   i.quantity
+        }))
       };
       window.voiceflow.chat.interact({
         action: {
@@ -132,31 +153,57 @@ function renderMiniCart() {
       });
     });
   }
+
+  // Position (or hide) the mini-cart based on isChatOpen
+  updateMiniCartPosition();
 }
 
-// --- The extension object ---
+/**
+ * Helper you can call whenever a user clicks "Add" on a product in your extension.
+ * Simply pass in the variantGID, title, price, and imageUrl.
+ */
+function addItemToOrderList(variantGID, title, price, imageUrl) {
+  const existing = orderProductList.find(i => i.variantGID === variantGID);
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    orderProductList.push({ variantGID, quantity: 1, title, price, imageUrl });
+  }
+  renderMiniCart();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2) Define your extension object and, inside its render(), display your product grid.
+//    It will call addItemToOrderList(...) whenever the user clicks "Add".
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const AIStylistExtension = {
   name: 'AIStylistExtension',
   type: 'response',
   match: ({ trace }) => {
-    return trace.type === 'ext_ai_stylist' ||
-      (trace.payload && trace.payload.name === 'ext_ai_stylist');
+    return (
+      trace.type === 'ext_ai_stylist' ||
+      (trace.payload && trace.payload.name === 'ext_ai_stylist')
+    );
   },
   render: ({ trace, element }) => {
+    // Example payload parsing (as you already do)
     let payloadObj = {};
     if (trace.payload) {
-      if (typeof trace.payload === 'string') {
-        try {
-          payloadObj = JSON.parse(trace.payload);
-        } catch (e) {
-          return;
-        }
-      } else {
-        payloadObj = trace.payload;
+      try {
+        payloadObj = typeof trace.payload === 'string'
+          ? JSON.parse(trace.payload)
+          : trace.payload;
+      } catch {
+        return;
       }
     }
-    const recommendedStylingModels = Array.isArray(payloadObj.recommendedStylingModels) ? payloadObj.recommendedStylingModels : [];
-    const shopifyProductData = payloadObj.shopifyProductData || {};
+    const recommendedStylingModels = Array.isArray(payloadObj.recommendedStylingModels)
+      ? payloadObj.recommendedStylingModels
+      : [];
+    const shopifyProductData = payloadObj.shopifyProductData || [];
+
+    // Build your product grid UI exactly as before …
     const container = document.createElement('div');
     container.innerHTML = `
       <style>
@@ -312,6 +359,7 @@ export const AIStylistExtension = {
     element.appendChild(container);
     const grid = container.querySelector('.stylist-grid');
     let activeTile = null;
+
     recommendedStylingModels.forEach((model) => {
       const tile = document.createElement('div');
       tile.classList.add('stylist-tile');
@@ -319,90 +367,101 @@ export const AIStylistExtension = {
       const imageUrl = model.Attachments && model.Attachments[0]?.url;
       tile.innerHTML = `<img src="${imageUrl}" alt="${model['Look Name']}" />`;
       tile.addEventListener('click', () => {
-        if (activeTile && activeTile !== tile) {
-          activeTile.classList.remove('active');
-          const prevPanel = activeTile.querySelector('.product-panel');
-          if (prevPanel) prevPanel.remove();
-        }
-        const isReopening = tile.classList.toggle('active');
-        activeTile = isReopening ? tile : null;
-        if (isReopening) {
-          grid.style.display = 'none';
-          const prevFullPanel = container.querySelector('.full-width-panel');
-          if (prevFullPanel) prevFullPanel.remove();
-          const panel = document.createElement('div');
-          panel.classList.add('product-panel', 'full-width-panel');
-          let panelHTML = `
-            <button class="back-btn" style="margin-bottom: 16px;">← Back</button>
-            <img src="${imageUrl}" alt="${model['Look Name']}" class="look-image-full" />
-            <div class="product-list-col">
-              <h3 style="text-align:center; margin-bottom: 18px; font-size: 24px;">${model['Look Name']}</h3>
-          `;
-          const allProducts = Array.isArray(shopifyProductData) ? shopifyProductData : [];
-          const connectedProductTitles = (model['Connected Products'] || '').split(',').map(t => t.trim()).filter(Boolean);
-          const connectedProducts = allProducts.filter(p => connectedProductTitles.includes(p.title));
-          panelHTML += connectedProducts.map(p => {
-            const productImg = p.featuredMedia?.preview?.image?.url || 'https://via.placeholder.com/48';
-            const price = p.variants?.edges?.[0]?.node?.price || 'N/A';
-            const variantGID = p.variants?.edges?.[0]?.node?.id || '';
-            return `
-              <div class="product-card" data-product-title="${p.title}">
-                <img src="${productImg}" class="product-thumb" />
-                <div class="product-info">
-                  <div class="product-title">${p.title}</div>
-                  <div class="product-price">€${price}</div>
-                </div>
-                <div class="product-actions">
-                  <button data-action="add" data-variant-gid="${variantGID}" data-title="${p.title}" data-price="${price}" data-image="${productImg}">Add</button>
-                  <button data-action="view">View</button>
-                </div>
-              </div>
-            `;
-          }).join('');
-          panelHTML += '</div>';
-          panel.innerHTML = panelHTML;
-          const backBtn = panel.querySelector('.back-btn');
-          backBtn.addEventListener('click', () => {
-            panel.remove();
-            grid.style.display = '';
-            if (activeTile) activeTile.classList.remove('active');
+        // Your existing "open panel / show products" logic goes here …
+        const connectedProductTitles = (model['Connected Products'] || '')
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
+        const allProducts = Array.isArray(shopifyProductData) ? shopifyProductData : [];
+        const connectedProducts = allProducts.filter((p) =>
+          connectedProductTitles.includes(p.title)
+        );
+
+        // Build a panel that shows connectedProducts with "Add" buttons
+        const panel = document.createElement('div');
+        panel.classList.add('product-panel');
+        panel.innerHTML = `
+          <button class="back-btn">← Back</button>
+          <img src="${imageUrl}" alt="${model['Look Name']}" class="look-image-large" />
+          <div class="product-list-col">
+            <h3>${model['Look Name']}</h3>
+            ${connectedProducts
+              .map((p) => {
+                const productImg = p.featuredMedia?.preview?.image?.url || '';
+                const price = p.variants?.edges?.[0]?.node?.price || '0.00';
+                const variantGID = p.variants?.edges?.[0]?.node?.id || '';
+
+                return `
+                  <div class="product-card">
+                    <img src="${productImg}" class="product-thumb" />
+                    <div class="product-info">
+                      <div class="product-title">${p.title}</div>
+                      <div class="product-price">€${price}</div>
+                    </div>
+                    <div class="product-actions">
+                      <button class="add-btn" data-variant-gid="${variantGID}" data-title="${p.title}" data-price="${price}" data-image="${productImg}">Add</button>
+                      <button class="view-btn" data-handle="${p.handle}">View</button>
+                    </div>
+                  </div>
+                `;
+              })
+              .join('')}
+          </div>
+        `;
+        element.appendChild(panel);
+
+        // "Back" button hides this panel and shows the grid again
+        panel.querySelector('.back-btn').addEventListener('click', () => {
+          panel.remove();
+          grid.style.display = '';
+          if (activeTile) activeTile.classList.remove('active');
+        });
+
+        // Bind each "Add" and "View" button inside panel
+        panel.querySelectorAll('.product-card').forEach((card) => {
+          const addBtn = card.querySelector('.add-btn');
+          const viewBtn = card.querySelector('.view-btn');
+          addBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const variantGID = addBtn.dataset.variantGid;
+            const title       = addBtn.dataset.title;
+            const price       = parseFloat(addBtn.dataset.price);
+            const imageUrl    = addBtn.dataset.image;
+
+            // Add item to our mini-cart
+            addItemToOrderList(variantGID, title, price, imageUrl);
           });
-          panel.querySelectorAll('.product-card').forEach(card => {
-            const productTitle = card.dataset.productTitle;
-            card.querySelectorAll('button').forEach(btn => {
-              btn.addEventListener('click', e => {
-                e.stopPropagation();
-                const action = btn.dataset.action;
-                if (action === 'view') {
-                  const product = connectedProducts.find(p => p.title === productTitle);
-                  if (product && product.handle) {
-                    const shopifyUrl = `https://yourshopifystore.com/products/${product.handle}`;
-                    window.open(shopifyUrl, '_blank');
-                    return;
-                  }
-                } else if (action === 'add') {
-                  addItemToOrderList(
-                    btn.dataset.variantGid,
-                    btn.dataset.title,
-                    parseFloat(btn.dataset.price),
-                    btn.dataset.image
-                  );
-                  return;
-                }
-                window.voiceflow.chat.interact({
-                  type: 'complete',
-                  payload: {
-                    action,
-                    productTitle
-                  }
-                });
-              });
-            });
+
+          viewBtn.addEventListener('click', () => {
+            const handle = viewBtn.dataset.handle;
+            if (handle) {
+              window.open(`https://yourshopifystore.com/products/${handle}`, '_blank');
+            }
           });
-          container.appendChild(panel);
-        }
+        });
+
+        // Hide the grid while the panel is open
+        grid.style.display = 'none';
       });
+
       grid.appendChild(tile);
     });
-  }
+  },
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3) Register chat.on('open') / chat.on('close') as soon as the widget loads
+// ─────────────────────────────────────────────────────────────────────────────
+
+// We wrap this in an IIFE so it runs immediately when the extension is imported.
+// It polls until voiceflow.chat is available, then hooks our handlers.
+(function waitForVoiceflowChat() {
+  if (window.voiceflow && window.voiceflow.chat && typeof window.voiceflow.chat.on === 'function') {
+    // Attach open/close listeners here (only once)
+    window.voiceflow.chat.on('open',  handleChatOpen);
+    window.voiceflow.chat.on('close', handleChatClose);
+  } else {
+    // Try again in 200ms
+    setTimeout(waitForVoiceflowChat, 200);
+  }
+})();
