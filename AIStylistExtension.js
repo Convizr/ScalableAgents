@@ -458,5 +458,13 @@ export const AIStylistExtension = {
     if (orderProductList.length > 0) {
       renderMiniCart();
     }
+  },
+
+  unmount: () => {
+    // Remove the entire root container, taking the mini-cart with it.
+    const root = document.querySelector('.ai-stylist-extension-root');
+    if (root) root.remove();
+    // Clear in-memory state if you want a fresh cart next time
+    orderProductList.length = 0;
   }
 };
