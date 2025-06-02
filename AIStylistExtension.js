@@ -4,6 +4,7 @@ let isChatOpen = true;
 
 window.addEventListener('message', (event) => {
   if (!event.data || typeof event.data !== 'object' || !event.data.type?.startsWith('voiceflow:')) return;
+  console.log('Voiceflow event:', event.data.type); // <-- Add this line
   const miniCart = document.querySelector('.mini-cart');
   if (event.data.type === 'voiceflow:open') {
     isChatOpen = true;
