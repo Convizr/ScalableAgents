@@ -18,8 +18,8 @@ function updateMiniCartPosition() {
   if (!miniCart) return;
   if (isChatOpen) {
     miniCart.style.right = '425px';
-    miniCart.style.top = '75px';
-    miniCart.style.bottom = '';
+    miniCart.style.top = '';
+    miniCart.style.bottom = '20px';
   } else {
     miniCart.style.right = '20px';
     miniCart.style.top = '';
