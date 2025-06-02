@@ -171,6 +171,7 @@ function addItemToOrderList(variantGID, title, price, imageUrl) {
   }
   renderMiniCart();
 }
+window.addItemToOrderList = addItemToOrderList;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 2) Define your extension object and, inside its render(), display your product grid.
