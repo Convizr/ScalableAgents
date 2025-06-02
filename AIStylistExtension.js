@@ -4,12 +4,29 @@ let isChatOpen = true;
 
 function updateMiniCartPosition() {
   const miniCart = document.querySelector('.mini-cart');
-  if (!miniCart) return;
+  if (!miniCart) return; // If no mini‐cart in DOM, nothing to do.
+
+  // If the widget is minimized/closed, hide the mini-cart
+  if (!isChatOpen) {
+    miniCart.style.display = 'none';
+    return;
+  }
+
+  // If the widget is open, show + position the mini-cart
+  miniCart.style.display = ''; // revert to default CSS/display value
   const isMobile = window.innerWidth <= 600;
+
+  // Reset any previously set positioning
+  miniCart.style.top = '';
+  miniCart.style.right = '';
+  miniCart.style.bottom = '';
+
   if (isChatOpen) {
+    // Voic eflow widget is open
     miniCart.style.right = isMobile ? '20px' : '425px';
     miniCart.style.bottom = '75px';
   } else {
+    // (This branch should never be hit, because we returned earlier if !isChatOpen)
     miniCart.style.right = '20px';
     miniCart.style.bottom = '100px';
   }
@@ -26,6 +43,7 @@ function addItemToOrderList(variantGID, title, price, imageUrl) {
 }
 
 function renderMiniCart() {
+  // 1. Find or create the .mini-cart DIV
   let miniCart = document.querySelector('.mini-cart');
   if (!miniCart) {
     miniCart = document.createElement('div');
@@ -33,9 +51,9 @@ function renderMiniCart() {
     document.body.appendChild(miniCart);
   }
 
+  // 2. Populate its innerHTML
   const totalItems = orderProductList.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = orderProductList.reduce((sum, i) => sum + i.price * i.quantity, 0);
-
   miniCart.innerHTML = `
     <div class="mini-cart-content">
       <h3>Your Cart (${totalItems} items)</h3>
@@ -57,7 +75,7 @@ function renderMiniCart() {
     </div>
   `;
 
-  // Only append styles once
+  // Add back the style injection for the mini-cart
   if (!document.getElementById('mini-cart-styles')) {
     const style = document.createElement('style');
     style.id = 'mini-cart-styles';
@@ -90,9 +108,13 @@ function renderMiniCart() {
     document.head.appendChild(style);
   }
 
+  // 3. Once the DOM is updated, call updateMiniCartPosition() to sync visibility/position
+  updateMiniCartPosition();
+
+  // 4. Bind the checkout button listener (only once)
   const checkoutButton = miniCart.querySelector('#checkoutButton');
   if (checkoutButton && !checkoutButton.dataset.bound) {
-    checkoutButton.dataset.bound = 'true'; // prevent double-binding
+    checkoutButton.dataset.bound = 'true';
     checkoutButton.addEventListener('click', () => {
       const payloadData = {
         orderList: orderProductList.map(i => ({ variantGID: i.variantGID, quantity: i.quantity }))
@@ -110,9 +132,6 @@ function renderMiniCart() {
       });
     });
   }
-
-  // Position immediately after every re-render
-  updateMiniCartPosition();
 }
 
 // --- The extension object ---
