@@ -113,21 +113,41 @@ export const AIStylistExtension = {
     grid.className = 'stylist-grid';
     gridAndCart.appendChild(grid);
 
-    // Parse payload
-    let payloadObj = {};
-    if (trace.payload) {
-      if (typeof trace.payload === 'string') {
-        try {
-          payloadObj = JSON.parse(trace.payload);
-        } catch (e) {
-          return;
+    // Inject grid CSS (if not already present)
+    if (!document.getElementById('stylist-grid-styles')) {
+      const style = document.createElement('style');
+      style.id = 'stylist-grid-styles';
+      style.textContent = `
+        .stylist-grid {
+          display: grid;
+          gap: 16px;
+          grid-template-columns: repeat(2, 1fr);
+          margin: 20px 0;
         }
-      } else {
-        payloadObj = trace.payload;
-      }
+        .stylist-tile {
+          border-radius: 5px;
+          overflow: hidden;
+          cursor: pointer;
+          transition: box-shadow .2s;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 8px;
+        }
+        .stylist-tile img {
+          width: 120px;
+          height: 160px;
+          object-fit: cover;
+          border-radius: 8px;
+          margin-bottom: 8px;
+        }
+        .stylist-tile.active {
+          box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+          z-index: 2;
+        }
+      `;
+      document.head.appendChild(style);
     }
-    const recommendedStylingModels = Array.isArray(payloadObj.recommendedStylingModels) ? payloadObj.recommendedStylingModels : [];
-    const shopifyProductData = payloadObj.shopifyProductData || {};
 
     // 4) Create the mini-cart container as a sibling of "grid" inside gridAndCart
     const miniCart = document.createElement('div');
@@ -147,7 +167,7 @@ export const AIStylistExtension = {
       showMiniCart(miniCart, cartIcon);
     });
 
-    // Inject CSS (if not already present)
+    // Inject mini-cart and cart icon CSS (if not already present)
     if (!document.getElementById('mini-cart-styles')) {
       const style = document.createElement('style');
       style.id = 'mini-cart-styles';
@@ -202,6 +222,21 @@ export const AIStylistExtension = {
 
     // 6) Populate the grid with tiles and panels
     let activeTile = null;
+    // Parse payload for looks
+    let payloadObj = {};
+    if (trace.payload) {
+      if (typeof trace.payload === 'string') {
+        try {
+          payloadObj = JSON.parse(trace.payload);
+        } catch (e) {
+          return;
+        }
+      } else {
+        payloadObj = trace.payload;
+      }
+    }
+    const recommendedStylingModels = Array.isArray(payloadObj.recommendedStylingModels) ? payloadObj.recommendedStylingModels : [];
+    const shopifyProductData = payloadObj.shopifyProductData || {};
     recommendedStylingModels.forEach((model) => {
       const tile = document.createElement('div');
       tile.classList.add('stylist-tile');
