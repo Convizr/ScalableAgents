@@ -16,8 +16,9 @@ window.addEventListener('message', (event) => {
 function updateMiniCartPosition() {
   const miniCart = document.querySelector('.mini-cart');
   if (!miniCart) return;
+  const isMobile = window.innerWidth <= 600;
   if (isChatOpen) {
-    miniCart.style.right = '425px';
+    miniCart.style.right = isMobile ? '20px' : '420px';
     miniCart.style.top = '';
     miniCart.style.bottom = '20px';
   } else {
