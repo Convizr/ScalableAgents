@@ -6,8 +6,6 @@ function updateMiniCartPosition() {
   const miniCart = document.querySelector('.mini-cart');
   if (!miniCart) return;
   const isMobile = window.innerWidth <= 600;
-  miniCart.style.top = '';
-  miniCart.style.right = '';
   if (isChatOpen) {
     miniCart.style.right = isMobile ? '20px' : '425px';
     miniCart.style.bottom = '75px';
@@ -18,26 +16,26 @@ function updateMiniCartPosition() {
 }
 
 function addItemToOrderList(variantGID, title, price, imageUrl) {
-  const existing = orderProductList.find((item) => item.variantGID === variantGID);
+  const existing = orderProductList.find(item => item.variantGID === variantGID);
   if (existing) {
     existing.quantity += 1;
   } else {
-    orderProductList.push({
-      variantGID,
-      quantity: 1,
-      title,
-      price,
-      imageUrl,
-    });
+    orderProductList.push({ variantGID, quantity: 1, title, price, imageUrl });
   }
   renderMiniCart();
 }
 
 function renderMiniCart() {
-  const miniCart = document.querySelector('.mini-cart') || document.createElement('div');
-  miniCart.className = 'mini-cart';
-  let totalItems = orderProductList.reduce((sum, item) => sum + item.quantity, 0);
-  let totalPrice = orderProductList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  let miniCart = document.querySelector('.mini-cart');
+  if (!miniCart) {
+    miniCart = document.createElement('div');
+    miniCart.className = 'mini-cart';
+    document.body.appendChild(miniCart);
+  }
+
+  const totalItems = orderProductList.reduce((sum, i) => sum + i.quantity, 0);
+  const totalPrice = orderProductList.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
   miniCart.innerHTML = `
     <div class="mini-cart-content">
       <h3>Your Cart (${totalItems} items)</h3>
@@ -47,7 +45,7 @@ function renderMiniCart() {
             <img src="${item.imageUrl}" alt="${item.title}" />
             <div class="item-details">
               <div class="item-title">${item.title}</div>
-              <div class="item-price">€${item.price} x ${item.quantity}</div>
+              <div class="item-price">€${item.price} × ${item.quantity}</div>
             </div>
           </div>
         `).join('')}
@@ -58,83 +56,46 @@ function renderMiniCart() {
       <button id="checkoutButton" class="checkout-btn">Continue to Checkout</button>
     </div>
   `;
-  const style = document.createElement('style');
-  style.textContent = `
-    .mini-cart {
-      position: fixed;
-      right: 425px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      padding: 16px;
-      max-width: 300px;
-      z-index: 1000;
-    }
-    .mini-cart-content {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .mini-cart h3 {
-      margin: 0;
-      font-size: 16px;
-      color: #333;
-    }
-    .mini-cart-items {
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .mini-cart-item {
-      display: flex;
-      gap: 8px;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-    }
-    .mini-cart-item img {
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-      border-radius: 4px;
-    }
-    .item-details {
-      flex: 1;
-    }
-    .item-title {
-      font-size: 14px;
-      color: #333;
-    }
-    .item-price {
-      font-size: 12px;
-      color: #666;
-    }
-    .mini-cart-total {
-      text-align: right;
-      padding-top: 8px;
-      border-top: 1px solid #eee;
-    }
-    .checkout-btn {
-      background: #447f76;
-      color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: background-color 0.2s;
-    }
-    .checkout-btn:hover {
-      background: #35635c;
-    }
-  `;
-  document.head.appendChild(style);
+
+  // Only append styles once
+  if (!document.getElementById('mini-cart-styles')) {
+    const style = document.createElement('style');
+    style.id = 'mini-cart-styles';
+    style.textContent = `
+      .mini-cart {
+        position: fixed;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        padding: 16px;
+        max-width: 300px;
+        z-index: 1000;
+      }
+      .mini-cart-content { display: flex; flex-direction: column; gap: 12px; }
+      .mini-cart h3 { margin: 0; font-size: 16px; color: #333; }
+      .mini-cart-items { max-height: 200px; overflow-y: auto; }
+      .mini-cart-item { display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid #eee; }
+      .mini-cart-item img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
+      .item-details { flex: 1; }
+      .item-title { font-size: 14px; color: #333; }
+      .item-price { font-size: 12px; color: #666; }
+      .mini-cart-total { text-align: right; padding-top: 8px; border-top: 1px solid #eee; }
+      .checkout-btn {
+        background: #447f76; color: white; border: none; padding: 10px;
+        border-radius: 6px; cursor: pointer; font-weight: 500;
+        transition: background-color 0.2s;
+      }
+      .checkout-btn:hover { background: #35635c; }
+    `;
+    document.head.appendChild(style);
+  }
+
   const checkoutButton = miniCart.querySelector('#checkoutButton');
-  if (checkoutButton) {
+  if (checkoutButton && !checkoutButton.dataset.bound) {
+    checkoutButton.dataset.bound = 'true'; // prevent double-binding
     checkoutButton.addEventListener('click', () => {
       const payloadData = {
-        orderList: orderProductList.map((item) => ({
-          variantGID: item.variantGID,
-          quantity: item.quantity,
-        })),
+        orderList: orderProductList.map(i => ({ variantGID: i.variantGID, quantity: i.quantity }))
       };
       window.voiceflow.chat.interact({
         action: {
@@ -142,16 +103,15 @@ function renderMiniCart() {
           payload: {
             event: {
               name: "ContinueToCheckout",
-              data: payloadData,
-            },
-          },
-        },
+              data: payloadData
+            }
+          }
+        }
       });
     });
   }
-  if (!document.querySelector('.mini-cart')) {
-    document.body.appendChild(miniCart);
-  }
+
+  // Position immediately after every re-render
   updateMiniCartPosition();
 }
 
