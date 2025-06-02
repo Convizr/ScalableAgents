@@ -172,6 +172,10 @@ export const AIStylistExtension = {
       (trace.payload && trace.payload.name === 'ext_ai_stylist');
   },
   render: ({ trace, element }) => {
+    // 1. Always remove any existing mini-cart at the start
+    const oldMiniCart = document.querySelector('.mini-cart');
+    if (oldMiniCart) oldMiniCart.remove();
+
     // Show mini-cart if it has items, hide if not
     const miniCart = document.querySelector('.mini-cart');
     if (miniCart) {
@@ -406,10 +410,11 @@ export const AIStylistExtension = {
             panel.remove();
             grid.style.display = '';
             if (activeTile) activeTile.classList.remove('active');
-            activeTile = null; // Ensure activeTile is cleared
+            activeTile = null;
             // Hide the mini-cart when stylist panel is closed by its back button
+            const miniCart = document.querySelector('.mini-cart');
             if (miniCart) {
-              miniCart.style.display = 'none';
+              miniCart.remove();
             }
           });
           panel.querySelectorAll('.product-card').forEach(card => {
@@ -445,21 +450,13 @@ export const AIStylistExtension = {
             });
           });
           container.appendChild(panel);
-          // When panel is shown, ensure mini-cart is visible if it has items
-          if (miniCart && orderProductList.length > 0) {
-            miniCart.style.display = '';
-            updateMiniCartPosition();
-          }
-        } else {
-          // Tile is being closed, but stylist panel might not be fully closed yet.
-          // If activeTile is now null (meaning no tile is expanded), hide the cart.
-          if (!activeTile && miniCart) {
-             // This case might be too aggressive if user just clicks off a tile but grid is still there.
-             // Hiding is better handled by the main "Back" button or chat close.
-          }
         }
       });
       grid.appendChild(tile);
     });
+    // 2. At the end, only show the mini-cart if there are items
+    if (orderProductList.length > 0) {
+      renderMiniCart();
+    }
   }
 };
