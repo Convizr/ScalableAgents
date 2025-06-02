@@ -1,3 +1,162 @@
+// Global array to hold everything the user "adds"
+const orderProductList = [];
+
+// Function to add items to the order list
+function addItemToOrderList(variantGID, title, price, imageUrl) {
+  // 1. See if it's already in the array
+  const existing = orderProductList.find(
+    (item) => item.variantGID === variantGID
+  );
+
+  if (existing) {
+    // If already present, just bump quantity
+    existing.quantity += 1;
+  } else {
+    // Otherwise, add a fresh line
+    orderProductList.push({
+      variantGID,
+      quantity: 1,
+      title,     // for your mini-cart UI
+      price,     // for your mini-cart UI
+      imageUrl,  // for your mini-cart UI
+    });
+  }
+
+  // Re-render the mini-cart UI
+  renderMiniCart();
+}
+
+// Function to render the mini-cart UI
+function renderMiniCart() {
+  const miniCart = document.querySelector('.mini-cart') || document.createElement('div');
+  miniCart.className = 'mini-cart';
+  
+  let totalItems = orderProductList.reduce((sum, item) => sum + item.quantity, 0);
+  let totalPrice = orderProductList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  miniCart.innerHTML = `
+    <div class="mini-cart-content">
+      <h3>Your Cart (${totalItems} items)</h3>
+      <div class="mini-cart-items">
+        ${orderProductList.map(item => `
+          <div class="mini-cart-item">
+            <img src="${item.imageUrl}" alt="${item.title}" />
+            <div class="item-details">
+              <div class="item-title">${item.title}</div>
+              <div class="item-price">€${item.price} x ${item.quantity}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="mini-cart-total">
+        <strong>Total: €${totalPrice.toFixed(2)}</strong>
+      </div>
+      <button id="checkoutButton" class="checkout-btn">Continue to Checkout</button>
+    </div>
+  `;
+
+  // Add styles for mini-cart
+  const style = document.createElement('style');
+  style.textContent = `
+    .mini-cart {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 16px;
+      max-width: 300px;
+      z-index: 1000;
+    }
+    .mini-cart-content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .mini-cart h3 {
+      margin: 0;
+      font-size: 16px;
+      color: #333;
+    }
+    .mini-cart-items {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .mini-cart-item {
+      display: flex;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .mini-cart-item img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .item-details {
+      flex: 1;
+    }
+    .item-title {
+      font-size: 14px;
+      color: #333;
+    }
+    .item-price {
+      font-size: 12px;
+      color: #666;
+    }
+    .mini-cart-total {
+      text-align: right;
+      padding-top: 8px;
+      border-top: 1px solid #eee;
+    }
+    .checkout-btn {
+      background: #447f76;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+    .checkout-btn:hover {
+      background: #35635c;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Add checkout button event listener
+  const checkoutButton = miniCart.querySelector('#checkoutButton');
+  if (checkoutButton) {
+    checkoutButton.addEventListener('click', () => {
+      const payloadData = {
+        orderList: orderProductList.map((item) => ({
+          variantGID: item.variantGID,
+          quantity: item.quantity,
+        })),
+      };
+
+      window.voiceflow.chat.interact({
+        action: {
+          type: "event",
+          payload: {
+            event: {
+              name: "ContinueToCheckout",
+              data: payloadData,
+            },
+          },
+        },
+      });
+    });
+  }
+
+  if (!document.querySelector('.mini-cart')) {
+    document.body.appendChild(miniCart);
+  }
+}
+
 export const AIStylistExtension = {
     name: 'AIStylistExtension',
     type: 'response',
@@ -233,6 +392,8 @@ export const AIStylistExtension = {
               const productImg = p.featuredMedia?.preview?.image?.url || 'https://via.placeholder.com/48';
               // Get price from first variant
               const price = p.variants?.edges?.[0]?.node?.price || 'N/A';
+              // Get variant GID
+              const variantGID = p.variants?.edges?.[0]?.node?.id || '';
               return `
                 <div class="product-card" data-product-title="${p.title}">
                   <img src="${productImg}" class="product-thumb" />
@@ -241,7 +402,7 @@ export const AIStylistExtension = {
                     <div class="product-price">€${price}</div>
                   </div>
                   <div class="product-actions">
-                    <button data-action="add">Add</button>
+                    <button data-action="add" data-variant-gid="${variantGID}" data-title="${p.title}" data-price="${price}" data-image="${productImg}">Add</button>
                     <button data-action="view">View</button>
                   </div>
                 </div>
@@ -275,6 +436,15 @@ export const AIStylistExtension = {
                       window.open(shopifyUrl, '_blank');
                       return;
                     }
+                  } else if (action === 'add') {
+                    // Add to cart using the new function
+                    addItemToOrderList(
+                      btn.dataset.variantGid,
+                      btn.dataset.title,
+                      parseFloat(btn.dataset.price),
+                      btn.dataset.image
+                    );
+                    return;
                   }
                   window.voiceflow.chat.interact({
                     type: 'complete',
