@@ -127,22 +127,6 @@ export const AIStylistExtension = {
       showMiniCartWithTimeout(miniCart, cartIcon);
     });
 
-    // 1) Build the grid as before
-    let payloadObj = {};
-    if (trace.payload) {
-      if (typeof trace.payload === 'string') {
-        try {
-          payloadObj = JSON.parse(trace.payload);
-        } catch (e) {
-          return;
-        }
-      } else {
-        payloadObj = trace.payload;
-      }
-    }
-    const recommendedStylingModels = Array.isArray(payloadObj.recommendedStylingModels) ? payloadObj.recommendedStylingModels : [];
-    const shopifyProductData = payloadObj.shopifyProductData || {};
-
     // Main container
     const container = document.createElement('div');
     container.innerHTML = `
@@ -343,6 +327,111 @@ export const AIStylistExtension = {
     element.appendChild(container);
     const grid = container.querySelector('.stylist-grid');
     let activeTile = null;
+
+    // --- Restore grid as default view ---
+    // We'll use a variable to track the current view: 'grid' or 'look'
+    let currentView = 'grid';
+    let lookPanel = null;
+
+    function showGrid() {
+      grid.style.display = '';
+      if (lookPanel) {
+        lookPanel.remove();
+        lookPanel = null;
+      }
+      activeTile = null;
+      currentView = 'grid';
+    }
+
+    function showLookPanel(model, imageUrl, connectedProducts) {
+      grid.style.display = 'none';
+      if (lookPanel) lookPanel.remove();
+      lookPanel = document.createElement('div');
+      lookPanel.classList.add('product-panel', 'full-width-panel');
+      let panelHTML = `
+        <button class="back-btn" style="margin-bottom: 16px;">← Back</button>
+        <img src="${imageUrl}" alt="${model['Look Name']}" class="look-image-full" />
+        <div class="product-list-col">
+          <h3 style="text-align:center; margin-bottom: 18px; font-size: 24px;">${model['Look Name']}</h3>
+      `;
+      panelHTML += connectedProducts.map(p => {
+        const productImg = p.featuredMedia?.preview?.image?.url || 'https://via.placeholder.com/48';
+        const price = p.variants?.edges?.[0]?.node?.price || 'N/A';
+        const variantGID = p.variants?.edges?.[0]?.node?.id || '';
+        return `
+          <div class="product-card" data-product-title="${p.title}">
+            <img src="${productImg}" class="product-thumb" />
+            <div class="product-info">
+              <div class="product-title">${p.title}</div>
+              <div class="product-price">€${price}</div>
+            </div>
+            <div class="product-actions">
+              <button data-action="add" data-variant-gid="${variantGID}" data-title="${p.title}" data-price="${price}" data-image="${productImg}">Add</button>
+              <button data-action="view">View</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      panelHTML += '</div>';
+      lookPanel.innerHTML = panelHTML;
+      const backBtn = lookPanel.querySelector('.back-btn');
+      backBtn.addEventListener('click', showGrid);
+      lookPanel.querySelectorAll('.product-card').forEach(card => {
+        const productTitle = card.dataset.productTitle;
+        card.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const action = btn.dataset.action;
+            if (action === 'view') {
+              const product = connectedProducts.find(p => p.title === productTitle);
+              if (product && product.handle) {
+                const shopifyUrl = `https://yourshopifystore.com/products/${product.handle}`;
+                window.open(shopifyUrl, '_blank');
+                return;
+              }
+            } else if (action === 'add') {
+              window.addItemToOrderList(
+                btn.dataset.variantGid,
+                btn.dataset.title,
+                parseFloat(btn.dataset.price),
+                btn.dataset.image,
+                miniCart,
+                cartIcon
+              );
+              return;
+            }
+            window.voiceflow.chat.interact({
+              type: 'complete',
+              payload: {
+                action,
+                productTitle
+              }
+            });
+          });
+        });
+      });
+      container.appendChild(lookPanel);
+      currentView = 'look';
+    }
+
+    // --- Build the grid ---
+    let payloadObj = {};
+    if (trace.payload) {
+      if (typeof trace.payload === 'string') {
+        try {
+          payloadObj = JSON.parse(trace.payload);
+        } catch (e) {
+          return;
+        }
+      } else {
+        payloadObj = trace.payload;
+      }
+    }
+    const recommendedStylingModels = Array.isArray(payloadObj.recommendedStylingModels) ? payloadObj.recommendedStylingModels : [];
+    const shopifyProductData = payloadObj.shopifyProductData || {};
+    const allProducts = Array.isArray(shopifyProductData) ? shopifyProductData : [];
+
+    grid.innerHTML = '';
     recommendedStylingModels.forEach((model) => {
       const tile = document.createElement('div');
       tile.classList.add('stylist-tile');
@@ -350,94 +439,14 @@ export const AIStylistExtension = {
       const imageUrl = model.Attachments && model.Attachments[0]?.url;
       tile.innerHTML = `<img src="${imageUrl}" alt="${model['Look Name']}" />`;
       tile.addEventListener('click', () => {
-        if (activeTile && activeTile !== tile) {
-          activeTile.classList.remove('active');
-          const prevPanel = activeTile.querySelector('.product-panel');
-          if (prevPanel) prevPanel.remove();
-        }
-        const isReopening = tile.classList.toggle('active');
-        activeTile = isReopening ? tile : null;
-        if (isReopening) {
-          grid.style.display = 'none';
-          const prevFullPanel = container.querySelector('.full-width-panel');
-          if (prevFullPanel) prevFullPanel.remove();
-          const panel = document.createElement('div');
-          panel.classList.add('product-panel', 'full-width-panel');
-          let panelHTML = `
-            <button class="back-btn" style="margin-bottom: 16px;">← Back</button>
-            <img src="${imageUrl}" alt="${model['Look Name']}" class="look-image-full" />
-            <div class="product-list-col">
-              <h3 style="text-align:center; margin-bottom: 18px; font-size: 24px;">${model['Look Name']}</h3>
-          `;
-          const allProducts = Array.isArray(shopifyProductData) ? shopifyProductData : [];
-          const connectedProductTitles = (model['Connected Products'] || '').split(',').map(t => t.trim()).filter(Boolean);
-          const connectedProducts = allProducts.filter(p => connectedProductTitles.includes(p.title));
-          panelHTML += connectedProducts.map(p => {
-            const productImg = p.featuredMedia?.preview?.image?.url || 'https://via.placeholder.com/48';
-            const price = p.variants?.edges?.[0]?.node?.price || 'N/A';
-            const variantGID = p.variants?.edges?.[0]?.node?.id || '';
-            return `
-              <div class="product-card" data-product-title="${p.title}">
-                <img src="${productImg}" class="product-thumb" />
-                <div class="product-info">
-                  <div class="product-title">${p.title}</div>
-                  <div class="product-price">€${price}</div>
-                </div>
-                <div class="product-actions">
-                  <button data-action="add" data-variant-gid="${variantGID}" data-title="${p.title}" data-price="${price}" data-image="${productImg}">Add</button>
-                  <button data-action="view">View</button>
-                </div>
-              </div>
-            `;
-          }).join('');
-          panelHTML += '</div>';
-          panel.innerHTML = panelHTML;
-          const backBtn = panel.querySelector('.back-btn');
-          backBtn.addEventListener('click', () => {
-            panel.remove();
-            grid.style.display = '';
-            if (activeTile) activeTile.classList.remove('active');
-            activeTile = null;
-          });
-          panel.querySelectorAll('.product-card').forEach(card => {
-            const productTitle = card.dataset.productTitle;
-            card.querySelectorAll('button').forEach(btn => {
-              btn.addEventListener('click', e => {
-                e.stopPropagation();
-                const action = btn.dataset.action;
-                if (action === 'view') {
-                  const product = connectedProducts.find(p => p.title === productTitle);
-                  if (product && product.handle) {
-                    const shopifyUrl = `https://yourshopifystore.com/products/${product.handle}`;
-                    window.open(shopifyUrl, '_blank');
-                    return;
-                  }
-                } else if (action === 'add') {
-                  window.addItemToOrderList(
-                    btn.dataset.variantGid,
-                    btn.dataset.title,
-                    parseFloat(btn.dataset.price),
-                    btn.dataset.image,
-                    miniCart,
-                    cartIcon
-                  );
-                  return;
-                }
-                window.voiceflow.chat.interact({
-                  type: 'complete',
-                  payload: {
-                    action,
-                    productTitle
-                  }
-                });
-              });
-            });
-          });
-          container.appendChild(panel);
-        }
+        // When a look is selected, show only that look's details
+        const connectedProductTitles = (model['Connected Products'] || '').split(',').map(t => t.trim()).filter(Boolean);
+        const connectedProducts = allProducts.filter(p => connectedProductTitles.includes(p.title));
+        showLookPanel(model, imageUrl, connectedProducts);
       });
       grid.appendChild(tile);
     });
+
     // Add mini-cart and cart icon to the DOM (fixed position)
     document.body.appendChild(container);
     document.body.appendChild(cartIcon);
