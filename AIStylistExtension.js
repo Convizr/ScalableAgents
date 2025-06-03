@@ -26,25 +26,25 @@ export const AIStylistExtension = {
 
     // Styles
     const styles = `
-      .ai-stylist-root { font-family: Arial, sans-serif; width: 100%; box-sizing: border-box; }
-      .stylist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 18px; margin: 18px 0; }
+      .ai-stylist-root { font-family: Arial, sans-serif; width: 100%; box-sizing: border-box; padding: 0; }
+      .stylist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 14px; padding: 0; margin: 0; }
       .stylist-tile { background: #f4f4f4; border-radius: 12px; overflow: hidden; cursor: pointer; transition: box-shadow .2s; display: flex; flex-direction: column; align-items: center; padding: 10px; border: 1px solid #e0e0e0; }
-      .stylist-tile img { width: 100px; height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+      .stylist-tile img { width: 90px; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
       .stylist-tile .look-name { font-size: 15px; font-weight: 500; color: #222; text-align: center; }
       .stylist-tile:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
-      .look-panel { background: #ededed; border-radius: 16px; padding: 24px 12px; margin: 0 auto; max-width: 400px; display: flex; flex-direction: column; align-items: center; }
+      .look-panel { background: #ededed; border-radius: 14px; padding: 18px 8px; width: 100%; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; }
       .look-panel .back-btn { align-self: flex-start; background: #fff; color: #447f76; border: 1px solid #447f76; border-radius: 6px; padding: 6px 18px; font-size: 15px; font-weight: 500; cursor: pointer; margin-bottom: 16px; transition: background 0.2s, color 0.2s; }
       .look-panel .back-btn:hover { background: #447f76; color: #fff; }
-      .look-panel .look-image { width: 70%; max-width: 220px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 18px; }
-      .look-panel .look-title { font-size: 24px; font-weight: bold; margin-bottom: 18px; text-align: center; }
-      .look-panel .keywords { font-size: 12px; color: #666; margin-bottom: 18px; text-align: center; }
+      .look-panel .look-image { width: 80%; max-width: 180px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 14px; }
+      .look-panel .look-title { font-size: 20px; font-weight: bold; margin-bottom: 12px; text-align: center; }
+      .look-panel .keywords { font-size: 12px; color: #666; margin-bottom: 14px; text-align: center; }
       .look-panel .keywords span { display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; margin: 2px 4px 2px 0; }
       .product-list-col { width: 100%; }
-      .product-card { display: flex; align-items: center; background: #fff; border-radius: 8px; margin-bottom: 14px; padding: 10px 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); gap: 12px; }
-      .product-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; margin-right: 10px; }
+      .product-card { display: flex; align-items: center; background: #fff; border-radius: 8px; margin-bottom: 10px; padding: 8px 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); gap: 10px; }
+      .product-thumb { width: 38px; height: 38px; object-fit: cover; border-radius: 6px; margin-right: 8px; }
       .product-info { flex: 1; }
-      .product-title { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
-      .product-price { color: #447f76; font-size: 14px; }
+      .product-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+      .product-price { color: #447f76; font-size: 13px; }
     `;
 
     // Root
