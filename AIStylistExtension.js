@@ -27,10 +27,10 @@ export const AIStylistExtension = {
     // Styles
     const styles = `
       .ai-stylist-root { font-family: Arial, sans-serif; width: 100%; box-sizing: border-box; padding: 0; }
-      .stylist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 14px; padding: 0; margin: 0; }
-      .stylist-tile { background: #f4f4f4; border-radius: 12px; overflow: hidden; cursor: pointer; transition: box-shadow .2s; display: flex; flex-direction: column; align-items: center; padding: 10px; border: 1px solid #e0e0e0; }
-      .stylist-tile img { width: 90px; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
-      .stylist-tile .look-name { font-size: 15px; font-weight: 500; color: #222; text-align: center; }
+      .stylist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 18px; padding: 0; margin: 0; }
+      .stylist-tile { background: #f4f4f4; border-radius: 16px; overflow: hidden; cursor: pointer; transition: box-shadow .2s; display: flex; flex-direction: column; align-items: center; padding: 16px 10px 14px 10px; border: 1px solid #e0e0e0; box-sizing: border-box; }
+      .stylist-tile img { width: 120px; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
+      .stylist-tile .look-name { font-size: 16px; font-weight: 500; color: #222; text-align: center; }
       .stylist-tile:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
       .look-panel { background: #ededed; border-radius: 14px; padding: 18px 8px; width: 100%; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; }
       .look-panel .back-btn { align-self: flex-start; background: #fff; color: #447f76; border: 1px solid #447f76; border-radius: 6px; padding: 6px 18px; font-size: 15px; font-weight: 500; cursor: pointer; margin-bottom: 16px; transition: background 0.2s, color 0.2s; }
@@ -45,6 +45,10 @@ export const AIStylistExtension = {
       .product-info { flex: 1; }
       .product-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
       .product-price { color: #447f76; font-size: 13px; }
+      @media (max-width: 400px) {
+        .stylist-grid { grid-template-columns: 1fr; }
+        .stylist-tile img { width: 100px; height: 130px; }
+      }
     `;
 
     // Root
