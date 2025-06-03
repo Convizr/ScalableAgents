@@ -389,8 +389,8 @@ export const AIStylistExtension = {
                     btn.dataset.title,
                     parseFloat(btn.dataset.price),
                     btn.dataset.image,
-                    document.querySelector('.mini-cart'),
-                    document.querySelector('.cart-icon')
+                    miniCart,
+                    cartIcon
                   );
                   return;
                 }
