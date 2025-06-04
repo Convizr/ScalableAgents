@@ -26,12 +26,13 @@ export const AIStylistExtension = {
 
     // Styles
     const styles = `
-      .ai-stylist-root { display: block !important; width: 100% !important; max-width: none !important; min-width: 0 !important; align-items: stretch !important; justify-content: stretch !important; font-family: Arial, sans-serif; box-sizing: border-box; padding: 0; }
+      .ai-stylist-root { display: block !important; width: 288px !important; max-width: none !important; min-width: 0 !important; align-items: stretch !important; justify-content: stretch !important; font-family: Arial, sans-serif; box-sizing: border-box; padding: 0; }
       .stylist-grid { display: grid; grid-template-columns: repeat(2, 1fr); max-width: none !important; min-width: 0 !important; align-items: stretch !important; justify-content: stretch !important; gap: 10px; padding: 0; margin: 0; }
       .stylist-tile { background: none; border-radius: 0; overflow: hidden; cursor: pointer; transition: box-shadow .2s; display: flex; flex-direction: column; align-items: center; padding: 6px 2px 6px 2px; border: none; box-sizing: border-box; box-shadow: none; }
-      .stylist-tile img { width: 90px; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+      .stylist-tile img { width: 90px; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: transform 0.18s cubic-bezier(0.4,0,0.2,1); }
+      .stylist-tile:hover img { transform: scale(1.07); }
       .stylist-tile .look-name { display: none; }
-      .stylist-tile:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+      .stylist-tile:hover { box-shadow: none; }
       .look-panel { background: #ededed; border-radius: 14px; padding: 18px 8px; width: 100%; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; }
       .look-panel .back-btn { align-self: flex-start; background: #fff; color: #447f76; border: 1px solid #447f76; border-radius: 6px; padding: 6px 18px; font-size: 15px; font-weight: 500; cursor: pointer; margin-bottom: 16px; transition: background 0.2s, color 0.2s; }
       .look-panel .back-btn:hover { background: #447f76; color: #fff; }
