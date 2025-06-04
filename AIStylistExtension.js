@@ -58,6 +58,36 @@ export const AIStylistExtension = {
 
     // --- State ---
     let currentLook = null;
+    let orderProductList = [];
+
+    function updateMiniCart() {
+      let cart = document.querySelector('.mini-cart-panel');
+      if (!cart) {
+        cart = document.createElement('div');
+        cart.className = 'mini-cart-panel';
+        document.querySelector('.ai-stylist-root').appendChild(cart);
+      }
+      if (orderProductList.length === 0) {
+        cart.innerHTML = '';
+        cart.style.display = 'none';
+        return;
+      }
+      cart.style.display = 'block';
+      cart.innerHTML = `
+        <div style="background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 14px 12px; margin-top: 16px; width: 100%;">
+          <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">Mini Cart</div>
+          <div style="max-height: 120px; overflow-y: auto; margin-bottom: 10px;">
+            ${orderProductList.map(item => `
+              <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;'>
+                <span style='font-size: 14px;'>${item.title}</span>
+                <span style='font-size: 14px;'>Qty: ${item.quantity}</span>
+              </div>
+            `).join('')}
+          </div>
+          <button style="background: #447f76; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; font-size: 15px; font-weight: 500; cursor: pointer; width: 100%;">Checkout</button>
+        </div>
+      `;
+    }
 
     function renderGrid() {
       root.innerHTML = `<div class="stylist-grid"></div>`;
@@ -90,19 +120,23 @@ export const AIStylistExtension = {
         <button class="back-btn">← Back</button>
         <img src="${imageUrl}" alt="${currentLook['Look Name']}" class="look-image" />
         <div class="look-title">${currentLook['Look Name']}</div>
-        <div class="keywords">${keywords.map(k => `<span>${k}</span>`).join('')}</div>
         <div class="product-list-col"></div>
       `;
       const productList = panel.querySelector('.product-list-col');
       connectedProducts.forEach(p => {
         const productImg = p.featuredMedia?.preview?.image?.url || 'https://via.placeholder.com/48';
         const price = p.variants?.edges?.[0]?.node?.price || 'N/A';
+        const productUrl = p.onlineStorePreviewUrl || '#';
         productList.innerHTML += `
           <div class="product-card">
             <img src="${productImg}" class="product-thumb" />
             <div class="product-info">
               <div class="product-title">${p.title}</div>
               <div class="product-price">€${price}</div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-left: auto;">
+              <button class="add-to-cart-btn" data-variant-gid="${p.variants?.edges?.[0]?.node?.id || ''}" data-title="${p.title}">Add</button>
+              <a href="${productUrl}" target="_blank" rel="noopener noreferrer" style="background: #e0e0e0; color: #222; border: none; border-radius: 6px; padding: 6px 16px; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-block; text-align: center;">View</a>
             </div>
           </div>
         `;
@@ -111,9 +145,36 @@ export const AIStylistExtension = {
         currentLook = null;
         renderGrid();
       });
+      // Add event listeners for Add buttons
+      panel.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const variantGID = btn.getAttribute('data-variant-gid');
+          const title = btn.getAttribute('data-title');
+          if (!variantGID) return;
+          const existing = orderProductList.find(item => item.variantGID === variantGID);
+          if (existing) {
+            existing.quantity += 1;
+          } else {
+            orderProductList.push({ variantGID, title, quantity: 1 });
+          }
+          updateMiniCart();
+        });
+      });
+      updateMiniCart();
     }
 
     // Initial render
     renderGrid();
+
+    // Add styles for mini cart
+    const miniCartStyles = `
+      .mini-cart-panel { position: relative; z-index: 10; }
+    `;
+    if (!document.getElementById('mini-cart-styles')) {
+      const styleTag = document.createElement('style');
+      styleTag.id = 'mini-cart-styles';
+      styleTag.innerHTML = miniCartStyles;
+      document.head.appendChild(styleTag);
+    }
   }
 };
