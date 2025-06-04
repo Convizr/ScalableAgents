@@ -26,7 +26,7 @@ export const AIStylistExtension = {
 
     // Styles
     const styles = `
-      .ai-stylist-root { font-family: Arial, sans-serif; width: 100%; box-sizing: border-box; padding: 0; }
+      .ai-stylist-root { display: block !important; width: 100% !important; font-family: Arial, sans-serif; box-sizing: border-box; padding: 0; }
       .stylist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; padding: 0; margin: 0; }
       .stylist-tile { background: none; border-radius: 0; overflow: hidden; cursor: pointer; transition: box-shadow .2s; display: flex; flex-direction: column; align-items: center; padding: 6px 2px 6px 2px; border: none; box-sizing: border-box; box-shadow: none; }
       .stylist-tile img { width: 90px; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
