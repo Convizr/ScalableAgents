@@ -53,27 +53,23 @@ export const AIStylistExtension = {
     `;
 
     // Root
-    element.innerHTML = `<style>${styles}</style><div class="ai-stylist-root"></div>`;
+    element.innerHTML = `<style>${styles}</style><div class="ai-stylist-root"><div class="main-content"></div><div class="mini-cart-panel"></div></div>`;
     const root = element.querySelector('.ai-stylist-root');
+    const mainContent = root.querySelector('.main-content');
+    const miniCartPanel = root.querySelector('.mini-cart-panel');
 
     // --- State ---
     let currentLook = null;
     let orderProductList = [];
 
     function updateMiniCart() {
-      let cart = document.querySelector('.mini-cart-panel');
-      if (!cart) {
-        cart = document.createElement('div');
-        cart.className = 'mini-cart-panel';
-        document.querySelector('.ai-stylist-root').appendChild(cart);
-      }
       if (orderProductList.length === 0) {
-        cart.innerHTML = '';
-        cart.style.display = 'none';
+        miniCartPanel.innerHTML = '';
+        miniCartPanel.style.display = 'none';
         return;
       }
-      cart.style.display = 'block';
-      cart.innerHTML = `
+      miniCartPanel.style.display = 'block';
+      miniCartPanel.innerHTML = `
         <div style="background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 14px 12px; margin-top: 16px; width: 100%;">
           <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">Mini Cart</div>
           <div style="max-height: 120px; overflow-y: auto; margin-bottom: 10px;">
@@ -90,8 +86,8 @@ export const AIStylistExtension = {
     }
 
     function renderGrid() {
-      root.innerHTML = `<div class="stylist-grid"></div>`;
-      const grid = root.querySelector('.stylist-grid');
+      mainContent.innerHTML = `<div class="stylist-grid"></div>`;
+      const grid = mainContent.querySelector('.stylist-grid');
       recommendedStylingModels.forEach(model => {
         const tile = document.createElement('div');
         tile.className = 'stylist-tile';
@@ -114,8 +110,8 @@ export const AIStylistExtension = {
       // Find connected products
       const connectedTitles = (currentLook['Connected Products'] || '').split(',').map(t => t.trim()).filter(Boolean);
       const connectedProducts = shopifyProductData.filter(p => connectedTitles.includes(p.title));
-      root.innerHTML = `<div class="look-panel"></div>`;
-      const panel = root.querySelector('.look-panel');
+      mainContent.innerHTML = `<div class="look-panel"></div>`;
+      const panel = mainContent.querySelector('.look-panel');
       panel.innerHTML = `
         <button class="back-btn">← Back</button>
         <img src="${imageUrl}" alt="${currentLook['Look Name']}" class="look-image" />
@@ -136,7 +132,7 @@ export const AIStylistExtension = {
             </div>
             <div style="display: flex; gap: 8px; margin-left: auto;">
               <button class="add-to-cart-btn" data-variant-gid="${p.variants?.edges?.[0]?.node?.id || ''}" data-title="${p.title}">Add</button>
-              <a href="${productUrl}" target="_blank" rel="noopener noreferrer" style="background: #e0e0e0; color: #222; border: none; border-radius: 6px; padding: 6px 16px; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-block; text-align: center;">View</a>
+              <button class="view-product-btn" data-url="${productUrl}" style="background: #e0e0e0; color: #222; border: none; border-radius: 6px; padding: 6px 16px; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-block; text-align: center; cursor: pointer;">View</button>
             </div>
           </div>
         `;
@@ -157,7 +153,24 @@ export const AIStylistExtension = {
           } else {
             orderProductList.push({ variantGID, title, quantity: 1 });
           }
+          // UI feedback: change button text to 'Added!' and disable briefly
+          const originalText = btn.textContent;
+          btn.textContent = 'Added!';
+          btn.disabled = true;
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }, 1000);
           updateMiniCart();
+        });
+      });
+      // Add event listeners for View buttons
+      panel.querySelectorAll('.view-product-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const url = btn.getAttribute('data-url');
+          if (url && url !== '#') {
+            window.open(url, '_blank');
+          }
         });
       });
       updateMiniCart();
