@@ -122,7 +122,9 @@ export const AIStylistExtension = {
       connectedProducts.forEach(p => {
         const productImg = p.featuredMedia?.preview?.image?.url || 'https://via.placeholder.com/48';
         const price = p.variants?.edges?.[0]?.node?.price || 'N/A';
-        const productUrl = p.onlineStorePreviewUrl || '#';
+        const productUrl = p.onlineStorePreviewUrl || '';
+        const viewBtnDisabled = !productUrl ? 'disabled' : '';
+        const viewBtnTitle = !productUrl ? 'No product URL available' : 'View product';
         productList.innerHTML += `
           <div class="product-card">
             <img src="${productImg}" class="product-thumb" />
@@ -132,7 +134,7 @@ export const AIStylistExtension = {
             </div>
             <div style="display: flex; gap: 8px; margin-left: auto;">
               <button class="add-to-cart-btn" data-variant-gid="${p.variants?.edges?.[0]?.node?.id || ''}" data-title="${p.title}">Add</button>
-              <button class="view-product-btn" data-url="${productUrl}" style="background: #e0e0e0; color: #222; border: none; border-radius: 6px; padding: 6px 16px; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-block; text-align: center; cursor: pointer;">View</button>
+              <button class="view-product-btn" data-url="${productUrl}" style="background: #e0e0e0; color: #222; border: none; border-radius: 6px; padding: 6px 16px; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-block; text-align: center; cursor: pointer;" ${viewBtnDisabled} title="${viewBtnTitle}">View</button>
             </div>
           </div>
         `;
@@ -168,7 +170,8 @@ export const AIStylistExtension = {
       panel.querySelectorAll('.view-product-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const url = btn.getAttribute('data-url');
-          if (url && url !== '#') {
+          console.log('View button clicked, url:', url);
+          if (url && url !== '' && url !== '#') {
             window.open(url, '_blank');
           }
         });
