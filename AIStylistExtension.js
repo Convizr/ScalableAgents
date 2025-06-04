@@ -46,6 +46,34 @@ export const AIStylistExtension = {
       .product-info { flex: 1; }
       .product-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
       .product-price { color: #447f76; font-size: 13px; }
+      .product-card-btn {
+        border: none;
+        border-radius: 6px;
+        padding: 6px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.18s, color 0.18s;
+      }
+      .product-card-btn.add {
+        background: #447f76;
+        color: #fff;
+      }
+      .product-card-btn.add:hover:enabled {
+        background: #355f5a;
+      }
+      .product-card-btn.view {
+        background: #e0e0e0;
+        color: #222;
+      }
+      .product-card-btn.view:hover:enabled {
+        background: #cacaca;
+        color: #111;
+      }
+      .product-card-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
       @media (max-width: 400px) {
         .stylist-grid { grid-template-columns: 1fr; }
         .stylist-tile img { width: 100px; height: 130px; }
@@ -133,8 +161,8 @@ export const AIStylistExtension = {
               <div class="product-price">€${price}</div>
             </div>
             <div style="display: flex; gap: 8px; margin-left: auto;">
-              <button class="add-to-cart-btn" data-variant-gid="${p.variants?.edges?.[0]?.node?.id || ''}" data-title="${p.title}">Add</button>
-              <button class="view-product-btn" data-url="${productUrl}" style="background: #e0e0e0; color: #222; border: none; border-radius: 6px; padding: 6px 16px; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-block; text-align: center; cursor: pointer;" ${viewBtnDisabled} title="${viewBtnTitle}">View</button>
+              <button class="product-card-btn add add-to-cart-btn" data-variant-gid="${p.variants?.edges?.[0]?.node?.id || ''}" data-title="${p.title}">Add</button>
+              <button class="product-card-btn view view-product-btn" data-url="${productUrl}" ${viewBtnDisabled} title="${viewBtnTitle}">View</button>
             </div>
           </div>
         `;
